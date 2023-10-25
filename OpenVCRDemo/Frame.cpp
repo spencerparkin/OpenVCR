@@ -12,11 +12,12 @@ Frame::Frame() : wxFrame(nullptr, wxID_ANY, "OpenVCR Demo")
 	fileMenu->Append(new wxMenuItem(fileMenu, ID_PowerOnMachine, "Power On Machine"));
 	fileMenu->Append(new wxMenuItem(fileMenu, ID_PowerOffMachine, "Power Off Machine"));
 	fileMenu->AppendSeparator();
+	fileMenu->Append(new wxMenuItem(fileMenu, ID_SetFileVideoSource, "Set File Video Source"));
+	fileMenu->Append(new wxMenuItem(fileMenu, ID_SetWebCamVideoSource, "Set Web-Cam Video Source"));
+	fileMenu->Append(new wxMenuItem(fileMenu, ID_SetIPCameraVideoSource, "Set IP-Camera Video Source"));
+	fileMenu->AppendSeparator();
 	fileMenu->Append(new wxMenuItem(fileMenu, ID_AddFileVideoDestination, "Add File Video Destination"));
 	fileMenu->Append(new wxMenuItem(fileMenu, ID_AddWindowVideoDestination, "Add Window Video Destination"));
-	fileMenu->AppendSeparator();
-	fileMenu->Append(new wxMenuItem(fileMenu, ID_SetWebCamVideoSource, "Set Web-Cam Video Source"));
-	fileMenu->Append(new wxMenuItem(fileMenu, ID_SetIPCameraVideosource, "Set IP-Camera Video Source"));
 	fileMenu->AppendSeparator();
 	fileMenu->Append(new wxMenuItem(fileMenu, ID_Exit, "Exit"));
 
@@ -31,7 +32,8 @@ Frame::Frame() : wxFrame(nullptr, wxID_ANY, "OpenVCR Demo")
 	this->Bind(wxEVT_MENU, &Frame::OnAddVideoDestination, this, ID_AddFileVideoDestination);
 	this->Bind(wxEVT_MENU, &Frame::OnAddVideoDestination, this, ID_AddWindowVideoDestination);
 	this->Bind(wxEVT_MENU, &Frame::OnSetVideoSource, this, ID_SetWebCamVideoSource);
-	this->Bind(wxEVT_MENU, &Frame::OnSetVideoSource, this, ID_SetIPCameraVideosource);
+	this->Bind(wxEVT_MENU, &Frame::OnSetVideoSource, this, ID_SetIPCameraVideoSource);
+	this->Bind(wxEVT_MENU, &Frame::OnSetVideoSource, this, ID_SetFileVideoSource);
 	this->Bind(wxEVT_MENU, &Frame::OnPowerMachine, this, ID_PowerOnMachine);
 	this->Bind(wxEVT_MENU, &Frame::OnPowerMachine, this, ID_PowerOffMachine);
 	this->Bind(wxEVT_MENU, &Frame::OnAbout, this, ID_About);
@@ -41,7 +43,7 @@ Frame::Frame() : wxFrame(nullptr, wxID_ANY, "OpenVCR Demo")
 	this->Bind(wxEVT_UPDATE_UI, &Frame::OnUpdateUI, this, ID_AddFileVideoDestination);
 	this->Bind(wxEVT_UPDATE_UI, &Frame::OnUpdateUI, this, ID_AddWindowVideoDestination);
 	this->Bind(wxEVT_UPDATE_UI, &Frame::OnUpdateUI, this, ID_SetWebCamVideoSource);
-	this->Bind(wxEVT_UPDATE_UI, &Frame::OnUpdateUI, this, ID_SetIPCameraVideosource);
+	this->Bind(wxEVT_UPDATE_UI, &Frame::OnUpdateUI, this, ID_SetIPCameraVideoSource);
 }
 
 /*virtual*/ Frame::~Frame()
@@ -79,7 +81,8 @@ void Frame::OnUpdateUI(wxUpdateUIEvent& event)
 		}
 		case ID_AddFileVideoDestination:
 		case ID_SetWebCamVideoSource:
-		case ID_SetIPCameraVideosource:
+		case ID_SetIPCameraVideoSource:
+		case ID_SetFileVideoSource:
 		{
 			event.Enable(!wxGetApp().machine.IsOn());
 			break;
@@ -116,6 +119,7 @@ void Frame::OnSetVideoSource(wxCommandEvent& event)
 			auto fileVideoSource = new OpenVCR::FileVideoSource();
 			fileVideoSource->SetVideoFilePath((const char*)openFileDialog.GetPath().c_str());
 			wxGetApp().machine.SetVideoSource(fileVideoSource, true);
+			wxMessageBox("File video source set to: " + wxString(fileVideoSource->GetVideoFilePath().c_str()), "Message", wxOK | wxICON_INFORMATION, this);
 		}
 	}
 }
@@ -128,6 +132,7 @@ void Frame::OnAddVideoDestination(wxCommandEvent& event)
 		auto windowVideoDestination = new OpenVCR::WindowVideoDestination();
 		windowVideoDestination->SetWindowHandle(windowHandle);
 		wxGetApp().machine.AddVideoDestination(windowVideoDestination);
+		wxMessageBox(wxString::Format("Window video destination set to HWND: 0x%08x", uintptr_t(windowHandle)), "Message", wxOK | wxICON_INFORMATION, this);
 	}
 	else if (event.GetId() == ID_AddFileVideoDestination)
 	{
