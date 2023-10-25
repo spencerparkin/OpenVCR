@@ -5,6 +5,12 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
+    <Filter Include="Sources\VideoSources">
+      <UniqueIdentifier>{dd26155c-b26d-4995-9df9-dec60f0ee65d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\VideoDestinations">
+      <UniqueIdentifier>{4d24a14b-ecd8-4b84-827a-8c5c45155e47}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Machine.h">
@@ -22,6 +28,12 @@
     <ClInclude Include="Frame.h">
       <Filter>Sources</Filter>
     </ClInclude>
+    <ClInclude Include="FileVideoSource.h">
+      <Filter>Sources\VideoSources</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowVideoDestination.h">
+      <Filter>Sources\VideoDestinations</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Machine.cpp">
@@ -35,6 +47,12 @@
     </ClCompile>
     <ClCompile Include="VideoSource.cpp">
       <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="FileVideoSource.cpp">
+      <Filter>Sources\VideoSources</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowVideoDestination.cpp">
+      <Filter>Sources\VideoDestinations</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

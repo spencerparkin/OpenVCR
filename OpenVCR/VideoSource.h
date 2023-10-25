@@ -13,6 +13,8 @@ namespace OpenVCR
 		VideoSource();
 		virtual ~VideoSource();
 
+		virtual bool PowerOn();
+		virtual bool PowerOff();
 		virtual bool GetFrameCount(int& frameCount);
 		virtual bool GetFrame(Frame& frame, int i);
 		virtual bool GetNextFrame(Frame& frame);

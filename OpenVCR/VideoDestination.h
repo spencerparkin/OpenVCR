@@ -13,6 +13,8 @@ namespace OpenVCR
 		VideoDestination();
 		virtual ~VideoDestination();
 
-		bool AddFrame(Frame& frame);
+		virtual bool PowerOn();
+		virtual bool PowerOff();
+		virtual bool AddFrame(Frame& frame);
 	};
 }

@@ -10,6 +10,16 @@ VideoSource::VideoSource()
 {
 }
 
+/*virtual*/ bool VideoSource::PowerOn()
+{
+	return false;
+}
+
+/*virtual*/ bool VideoSource::PowerOff()
+{
+	return false;
+}
+
 /*virtual*/ bool VideoSource::GetFrameCount(int& frameCount)
 {
 	return false;

@@ -10,7 +10,17 @@ VideoDestination::VideoDestination()
 {
 }
 
-bool VideoDestination::AddFrame(Frame& frame)
+/*virtual*/ bool VideoDestination::PowerOn()
+{
+	return false;
+}
+
+/*virtual*/ bool VideoDestination::PowerOff()
+{
+	return false;
+}
+
+/*virtual*/ bool VideoDestination::AddFrame(Frame& frame)
 {
 	return false;
 }

@@ -17,16 +17,21 @@ namespace OpenVCR
 		bool PowerOn();
 		bool PowerOff();
 		bool Tick();
+		bool IsOn();
 
-		void SetVideoSource(VideoSource* videoSource);
+		bool SetVideoSource(VideoSource* videoSource, bool deleteToo);
 		VideoSource* GetVideoSource();
 
-		void AddVideoDestination(VideoDestination* videoDestination);
-		void ClearAllVideoDestinations();
+		bool AddVideoDestination(VideoDestination* videoDestination);
+		bool ClearAllVideoDestinations(bool deleteToo);
+
+		VideoDestination* GetVideoDestination(int i);
+		int GetNumVideoDestination();
 
 	private:
 		VideoSource* videoSource;
-		std::list<VideoDestination*>* videoDestinationList;
+		std::vector<VideoDestination*>* videoDestinationArray;
 		Frame frame;
+		bool isPoweredOn;
 	};
 }

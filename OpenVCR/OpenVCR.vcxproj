@@ -142,16 +142,20 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Common.h" />
+    <ClInclude Include="FileVideoSource.h" />
     <ClInclude Include="Frame.h" />
     <ClInclude Include="VideoDestination.h" />
     <ClInclude Include="VideoSource.h" />
     <ClInclude Include="Machine.h" />
+    <ClInclude Include="WindowVideoDestination.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="FileVideoSource.cpp" />
     <ClCompile Include="Frame.cpp" />
     <ClCompile Include="Machine.cpp" />
     <ClCompile Include="VideoDestination.cpp" />
     <ClCompile Include="VideoSource.cpp" />
+    <ClCompile Include="WindowVideoDestination.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
