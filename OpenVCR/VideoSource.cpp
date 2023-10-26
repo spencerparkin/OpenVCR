@@ -25,6 +25,11 @@ VideoSource::VideoSource()
 	return false;
 }
 
+/*virtual*/ bool VideoSource::GetFrameNumber(long& frameNumber, Error& error)
+{
+	return false;
+}
+
 /*virtual*/ bool VideoSource::GetFrame(Frame& frame, long i, Error& error)
 {
 	return false;
@@ -33,9 +38,4 @@ VideoSource::VideoSource()
 /*virtual*/ bool VideoSource::GetNextFrame(Frame& frame, Error& error)
 {
 	return false;
-}
-
-/*virtual*/ bool VideoSource::IsLiveStream()
-{
-	return true;
 }

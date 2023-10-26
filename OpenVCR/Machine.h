@@ -30,11 +30,28 @@ namespace OpenVCR
 		VideoDestination* GetVideoDestination(int i);
 		int GetNumVideoDestination();
 
-		void SetFrameRate(double frameRate);
+		enum SourcePullMethod
+		{
+			GET_NEXT_FRAME_QUICKEST,
+			GET_NEXT_FRAME_THROTTLED,
+			SET_FRAME_POS_QUICKEST,
+			SET_FRAME_POS_THROTTLED,
+			SET_FRAME_POS_MANUAL
+		};
+
+		void SetPullMethod(SourcePullMethod sourcePullmethod);
+		SourcePullMethod GetPullMethod() const;
+
+		void SetPullRate(double pullRate);
+		double GetPullRate() const;
+
+		void SetFrameRate(double frameRateFPP);
 		double GetFrameRate() const;
 
 		void SetFramePosition(double framePosition);
 		double GetFramePosition() const;
+
+		void GetStatus(std::string& statusMsg);
 
 	private:
 		VideoSource* videoSource;
@@ -42,8 +59,12 @@ namespace OpenVCR
 		// TODO: Add array of frame filters?
 		Frame frame;
 		bool isPoweredOn;
-		double frameRate;
+		SourcePullMethod pullMethod;
+		double pullRatePPS;			// Pulls per second.
+		double frameRateFPP;		// Frames per pull.
 		double framePosition;
+		double frameCleanTimeRemaining;
+		bool frameDirty;
 		clock_t lastClockTime;
 	};
 }

@@ -11,8 +11,12 @@ Machine::Machine()
 	this->videoSource = nullptr;
 	this->videoDestinationArray = new std::vector<VideoDestination*>();
 	this->lastClockTime = 0;
-	this->frameRate = 30.0;
+	this->pullMethod = SourcePullMethod::GET_NEXT_FRAME_QUICKEST;
+	this->pullRatePPS = 30.0;
 	this->framePosition = 0.0;
+	this->frameRateFPP = 1.0;
+	this->frameDirty = true;
+	this->frameCleanTimeRemaining = 0.0;
 }
 
 /*virtual*/ Machine::~Machine()
@@ -56,6 +60,8 @@ bool Machine::PowerOn(Error& error)
 
 	this->lastClockTime = ::clock();
 	this->framePosition = 0.0;
+	this->frameDirty = true;
+	this->frameCleanTimeRemaining = 0.0;
 	this->isPoweredOn = true;
 	return true;
 }
@@ -80,50 +86,56 @@ bool Machine::Tick(Error& error)
 		return false;
 	}
 
-	clock_t currentClockTime = ::clock();
-	clock_t elapsedClockTime = currentClockTime - this->lastClockTime;
-	this->lastClockTime = currentClockTime;
-	double elapsedTimeSec = double(elapsedClockTime) / double(CLOCKS_PER_SEC);
-	double nextFramePosition = this->framePosition + this->frameRate * elapsedTimeSec;
-	bool passedIntegerBoundary = (::floor(nextFramePosition) != ::floor(this->framePosition));
-	this->framePosition = nextFramePosition;
-	if (passedIntegerBoundary)
+	bool pushFrame = false;
+
+	if (this->pullMethod == SourcePullMethod::GET_NEXT_FRAME_THROTTLED ||
+		this->pullMethod == SourcePullMethod::SET_FRAME_POS_THROTTLED)
 	{
-		if (this->videoSource->IsLiveStream())
+		clock_t currentClockTime = ::clock();
+		clock_t elapsedClockTime = currentClockTime - this->lastClockTime;
+		double elapsedTimeSeconds = double(elapsedClockTime) / double(CLOCKS_PER_SEC);
+		this->frameCleanTimeRemaining -= elapsedTimeSeconds;
+		if (this->frameCleanTimeRemaining <= 0.0)
 		{
-			if (!this->videoSource->GetNextFrame(frame, error))
-			{
-				error.Add("Failed to get next frame.");
-				return false;
-			}
+			double secondsPerPull = 1.0 / this->pullRatePPS;
+			while (this->frameCleanTimeRemaining <= 0.0)
+				this->frameCleanTimeRemaining += secondsPerPull;
+			this->frameDirty = true;
 		}
-		else
+	}
+
+	if (this->pullMethod == SourcePullMethod::GET_NEXT_FRAME_QUICKEST ||
+		(this->frameDirty && this->pullMethod == SourcePullMethod::GET_NEXT_FRAME_THROTTLED))
+	{
+		if (!this->videoSource->GetNextFrame(this->frame, error))
 		{
-			long i = (long)::floor(this->framePosition);
-			
-			long frameCount = 0;
-			if (!this->videoSource->GetFrameCount(frameCount, error))
-			{
-				error.Add("Could not determine video source frame count.");
-				return false;
-			}
-
-			if (i < 0)
-				i = 0;
-			else if (i >= frameCount)
-				i = frameCount - 1;
-
-			if (!this->videoSource->GetFrame(frame, i, error))
-			{
-				error.Add(std::format("Failed to get frame {} of {} total frames.", i, frameCount));
-				return false;
-			}
+			error.Add("Failed to get next frame.");
+			return false;
 		}
 
+		pushFrame = true;
+	}
+	else if (this->pullMethod == SourcePullMethod::SET_FRAME_POS_QUICKEST ||
+		(this->frameDirty && this->pullMethod == SourcePullMethod::SET_FRAME_POS_THROTTLED))
+	{
+		long i = (long)::floor(this->framePosition);
+		if (!this->videoSource->GetFrame(this->frame, i, error))
+		{
+			error.Add(std::format("Failed to get frame {}.", i));
+			return false;
+		}
+
+		this->framePosition += this->frameRateFPP;
+	}
+
+	this->frameDirty = false;
+
+	if (pushFrame)
+	{
 		// TODO: Run frame through filters here?
 
 		for (VideoDestination* videoDestination : *this->videoDestinationArray)
-			if (!videoDestination->AddFrame(frame, error))
+			if (!videoDestination->AddFrame(this->frame, error))
 				return false;
 	}
 
@@ -194,22 +206,51 @@ bool Machine::ClearAllVideoDestinations(bool deleteToo, Error& error)
 	return true;
 }
 
-void Machine::SetFrameRate(double frameRate)
+void Machine::SetFrameRate(double frameRateFPP)
 {
-	this->frameRate = frameRate;
+	this->frameRateFPP = frameRateFPP;
 }
 
 double Machine::GetFrameRate() const
 {
-	return this->frameRate;
+	return this->frameRateFPP;
 }
 
 void Machine::SetFramePosition(double framePosition)
 {
 	this->framePosition = framePosition;
+	this->frameDirty = true;
 }
 
 double Machine::GetFramePosition() const
 {
 	return this->framePosition;
+}
+
+void Machine::SetPullMethod(SourcePullMethod sourcePullMethod)
+{
+	this->pullMethod = sourcePullMethod;
+}
+
+Machine::SourcePullMethod Machine::GetPullMethod() const
+{
+	return this->pullMethod;
+}
+
+void Machine::GetStatus(std::string& statusMsg)
+{
+	if (!this->videoSource)
+		statusMsg = "No video source.";
+	else
+	{
+		Error error;
+
+		long frameCount = 0;
+		this->videoSource->GetFrameCount(frameCount, error);
+
+		long frameNumber = 0;
+		this->videoSource->GetFrameNumber(frameNumber, error);
+
+		statusMsg = std::format("Frame: {}/{}", frameNumber, frameCount);
+	}
 }

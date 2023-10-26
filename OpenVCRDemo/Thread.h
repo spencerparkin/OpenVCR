@@ -15,7 +15,7 @@ public:
 class ThreadStatusEvent : public wxThreadEvent
 {
 public:
-	ThreadStatusEvent(const wxString& statusMsg);
+	ThreadStatusEvent(const std::string& statusMsg);
 	virtual ~ThreadStatusEvent();
 
 	wxString statusMsg;

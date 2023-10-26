@@ -64,9 +64,15 @@ const std::string& FileVideoSource::GetVideoFilePath()
 
 /*virtual*/ bool FileVideoSource::GetFrame(Frame& frame, long i, Error& error)
 {
-	if (!this->videoCapture || !this->videoCapture->isOpened())
+	if (!this->videoCapture) // || !this->videoCapture->isOpened())		TODO: Is this call expensive?
 	{
 		error.Add("Can't get frame if video capture is not open.");
+		return false;
+	}
+
+	if (i < 0 || i >= this->frameCount)
+	{
+		error.Add("Given frame position out of bounds.");
 		return false;
 	}
 
@@ -92,13 +98,33 @@ const std::string& FileVideoSource::GetVideoFilePath()
 	return true;
 }
 
-/*virtual*/ bool FileVideoSource::GetNextFrame(Frame& frame, Error& error)
+/*virtual*/ bool FileVideoSource::GetFrameNumber(long& frameNumber, Error& error)
 {
-	error.Add("A file video source is not a live-stream.");
-	return false;
+	double propertyValue = 0.0;
+	propertyValue = this->videoCapture->get(cv::CAP_PROP_POS_FRAMES);
+	if (propertyValue == 0.0)
+	{
+		error.Add("Could not get CAP_PROP_POS_FRAMES property from video capture device.");
+		return false;
+	}
+
+	frameNumber = (long)propertyValue;
+	return true;
 }
 
-/*virtual*/ bool FileVideoSource::IsLiveStream()
+/*virtual*/ bool FileVideoSource::GetNextFrame(Frame& frame, Error& error)
 {
-	return false;
+	if (!this->videoCapture)
+	{
+		error.Add("Can't get next frame if video capture is not setup.");
+		return false;
+	}
+
+	if (!this->videoCapture->read(*frame.data))
+	{
+		error.Add("Read method on video capture device failed.");
+		return false;
+	}
+
+	return true;
 }

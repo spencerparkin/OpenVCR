@@ -17,8 +17,8 @@ namespace OpenVCR
 		virtual bool PowerOn(Error& error);
 		virtual bool PowerOff(Error& error);
 		virtual bool GetFrameCount(long& frameCount, Error& error);
+		virtual bool GetFrameNumber(long& frameNumber, Error& error);
 		virtual bool GetFrame(Frame& frame, long i, Error& error);
 		virtual bool GetNextFrame(Frame& frame, Error& error);
-		virtual bool IsLiveStream();
 	};
 }

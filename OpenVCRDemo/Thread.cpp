@@ -7,7 +7,7 @@ wxDEFINE_EVENT(EVT_THREAD_STATUS, ThreadStatusEvent);
 wxDEFINE_EVENT(EVT_THREAD_ENTERING, wxThreadEvent);
 wxDEFINE_EVENT(EVT_THREAD_EXITING, wxThreadEvent);
 
-ThreadErrorEvent::ThreadErrorEvent(const std::string& errorMsg)
+ThreadErrorEvent::ThreadErrorEvent(const std::string& errorMsg) : wxThreadEvent(EVT_THREAD_ERROR)
 {
 	this->errorMsg = errorMsg;
 }
@@ -16,7 +16,7 @@ ThreadErrorEvent::ThreadErrorEvent(const std::string& errorMsg)
 {
 }
 
-ThreadStatusEvent::ThreadStatusEvent(const wxString& statusMsg)
+ThreadStatusEvent::ThreadStatusEvent(const std::string& statusMsg) : wxThreadEvent(EVT_THREAD_STATUS)
 {
 	this->statusMsg = statusMsg;
 }
@@ -61,7 +61,8 @@ Thread::Thread(wxEvtHandler* eventHandler) : wxThread(wxTHREAD_JOINABLE)
 
 			if (i++ % 64 == 0)
 			{
-				wxString statusMsg = wxString::Format("Frame position: %f", machine.GetFramePosition());
+				std::string statusMsg;
+				machine.GetStatus(statusMsg);
 				::wxQueueEvent(this->eventHandler, new ThreadStatusEvent(statusMsg));
 			}
 		}
