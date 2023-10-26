@@ -34,6 +34,9 @@
     <ClInclude Include="WindowVideoDestination.h">
       <Filter>Sources\VideoDestinations</Filter>
     </ClInclude>
+    <ClInclude Include="Error.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Machine.cpp">
@@ -53,6 +56,9 @@
     </ClCompile>
     <ClCompile Include="WindowVideoDestination.cpp">
       <Filter>Sources\VideoDestinations</Filter>
+    </ClCompile>
+    <ClCompile Include="Error.cpp">
+      <Filter>Sources</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

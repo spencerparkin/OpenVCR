@@ -13,7 +13,7 @@ namespace OpenVCR
 		void SetWindowHandle(HANDLE windowHandle);
 		HANDLE GetWindowHandle();
 
-		virtual bool AddFrame(Frame& frame) override;
+		virtual bool AddFrame(Frame& frame, Error& error) override;
 
 	private:
 		HANDLE windowHandle;

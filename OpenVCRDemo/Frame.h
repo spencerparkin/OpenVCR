@@ -1,6 +1,7 @@
 #pragma once
 
 #include <wx/frame.h>
+#include <wx/timer.h>
 
 class Frame : public wxFrame
 {
@@ -18,6 +19,7 @@ public:
 		ID_PowerOnMachine,
 		ID_PowerOffMachine,
 		ID_About,
+		ID_Timer,
 		ID_Exit
 	};
 
@@ -27,4 +29,9 @@ public:
 	void OnExit(wxCommandEvent& event);
 	void OnAbout(wxCommandEvent& event);
 	void OnUpdateUI(wxUpdateUIEvent& event);
+	void OnClose(wxCloseEvent& event);
+	void OnTimer(wxTimerEvent& event);
+
+	wxTimer timer;
+	bool inTimer;
 };

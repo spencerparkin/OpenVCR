@@ -10,27 +10,32 @@ VideoSource::VideoSource()
 {
 }
 
-/*virtual*/ bool VideoSource::PowerOn()
+/*virtual*/ bool VideoSource::PowerOn(Error& error)
 {
 	return false;
 }
 
-/*virtual*/ bool VideoSource::PowerOff()
+/*virtual*/ bool VideoSource::PowerOff(Error& error)
 {
 	return false;
 }
 
-/*virtual*/ bool VideoSource::GetFrameCount(int& frameCount)
+/*virtual*/ bool VideoSource::GetFrameCount(long& frameCount, Error& error)
 {
 	return false;
 }
 
-/*virtual*/ bool VideoSource::GetFrame(Frame& frame, int i)
+/*virtual*/ bool VideoSource::GetFrame(Frame& frame, long i, Error& error)
 {
 	return false;
 }
 
-/*virtual*/ bool VideoSource::GetNextFrame(Frame& frame)
+/*virtual*/ bool VideoSource::GetNextFrame(Frame& frame, Error& error)
 {
 	return false;
+}
+
+/*virtual*/ bool VideoSource::IsLiveStream()
+{
+	return true;
 }

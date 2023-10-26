@@ -21,7 +21,7 @@ HANDLE WindowVideoDestination::GetWindowHandle()
 	return this->windowHandle;
 }
 
-/*virtual*/ bool WindowVideoDestination::AddFrame(Frame& frame)
+/*virtual*/ bool WindowVideoDestination::AddFrame(Frame& frame, Error& error)
 {
 	return false;
 }

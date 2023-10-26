@@ -9,5 +9,7 @@ namespace OpenVCR
 	public:
 		Frame();
 		virtual ~Frame();
+
+		cv::Mat* data;
 	};
 }
