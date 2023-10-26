@@ -3,6 +3,7 @@
 #include "Frame.h"
 #include <opencv2/core/directx.hpp>
 #include <opencv2/imgproc.hpp>
+#include <opencv2/highgui.hpp>
 
 using namespace OpenVCR;
 
@@ -174,7 +175,7 @@ HWND WindowVideoDestination::GetWindowHandle()
 
     // Now do the copy and unmap.
     cv::Mat mappedTexture(this->windowHeight, this->windowWidth, CV_8UC4, mappedTextureResource.pData, mappedTextureResource.RowPitch);
-    frameRGBA.copyTo(mappedTexture);
+    cv::resize(frameRGBA, mappedTexture, mappedTexture.size());
     this->deviceContext->Unmap(this->frameTexture, subResource);
 
     // Lastly, just blit the frame texture into the back-buffer and present.
