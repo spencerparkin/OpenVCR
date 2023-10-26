@@ -116,7 +116,9 @@ bool Machine::Tick(Error& error)
 		pushFrame = true;
 	}
 	else if (this->pullMethod == SourcePullMethod::SET_FRAME_POS_QUICKEST ||
-		(this->frameDirty && this->pullMethod == SourcePullMethod::SET_FRAME_POS_THROTTLED))
+		(this->frameDirty &&
+			(this->pullMethod == SourcePullMethod::SET_FRAME_POS_THROTTLED ||
+				this->pullMethod == SourcePullMethod::SET_FRAME_POS_MANUAL)))
 	{
 		long i = (long)::floor(this->framePosition);
 		if (!this->videoSource->GetFrame(this->frame, i, error))
@@ -125,10 +127,14 @@ bool Machine::Tick(Error& error)
 			return false;
 		}
 
-		this->framePosition += this->frameRateFPP;
+		if (this->pullMethod != SourcePullMethod::SET_FRAME_POS_MANUAL)
+			this->framePosition += this->frameRateFPP;
+		else
+			this->frameDirty = false;
 	}
 
-	this->frameDirty = false;
+	if (this->pullMethod != SourcePullMethod::SET_FRAME_POS_MANUAL)
+		this->frameDirty = false;
 
 	if (pushFrame)
 	{

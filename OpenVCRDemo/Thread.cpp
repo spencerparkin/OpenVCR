@@ -53,17 +53,17 @@ Thread::Thread(wxEvtHandler* eventHandler) : wxThread(wxTHREAD_JOINABLE)
 		int i = 0;
 		while (!this->exitSignaled)
 		{
-			if (!machine.Tick(error))
-			{
-				::wxQueueEvent(this->eventHandler, new ThreadErrorEvent(error.GetErrorMessage()));
-				break;
-			}
-
-			if (i++ % 64 == 0)
+			if (i++ % 16 == 0)
 			{
 				std::string statusMsg;
 				machine.GetStatus(statusMsg);
 				::wxQueueEvent(this->eventHandler, new ThreadStatusEvent(statusMsg));
+			}
+
+			if (!machine.Tick(error))
+			{
+				::wxQueueEvent(this->eventHandler, new ThreadErrorEvent(error.GetErrorMessage()));
+				break;
 			}
 		}
 
