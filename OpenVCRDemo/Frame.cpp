@@ -1,5 +1,6 @@
 #include "Frame.h"
 #include "Application.h"
+#include "Thread.h"
 #include <WindowVideoDestination.h>
 #include <Error.h>
 #include <FileVideoSource.h>
@@ -8,9 +9,9 @@
 #include <wx/filedlg.h>
 #include <inttypes.h>
 
-Frame::Frame() : wxFrame(nullptr, wxID_ANY, "OpenVCR Demo", wxDefaultPosition, wxSize(512, 512)), timer(this, ID_Timer)
+Frame::Frame() : wxFrame(nullptr, wxID_ANY, "OpenVCR Demo", wxDefaultPosition, wxSize(512, 512))
 {
-	this->inTimer = false;
+	this->thread = nullptr;
 
 	wxMenu* fileMenu = new wxMenu();
 	fileMenu->Append(new wxMenuItem(fileMenu, ID_PowerOnMachine, "Power On Machine"));
@@ -52,9 +53,10 @@ Frame::Frame() : wxFrame(nullptr, wxID_ANY, "OpenVCR Demo", wxDefaultPosition, w
 	this->Bind(wxEVT_UPDATE_UI, &Frame::OnUpdateUI, this, ID_SetIPCameraVideoSource);
 	this->Bind(wxEVT_UPDATE_UI, &Frame::OnUpdateUI, this, ID_SetFileVideoSource);
 	this->Bind(wxEVT_CLOSE_WINDOW, &Frame::OnClose, this);
-	this->Bind(wxEVT_TIMER, &Frame::OnTimer, this, ID_Timer);
-
-	this->timer.Start(1);
+	this->Bind(EVT_THREAD_ENTERING, &Frame::OnThreadEntering, this);
+	this->Bind(EVT_THREAD_EXITING, &Frame::OnThreadExiting, this);
+	this->Bind(EVT_THREAD_STATUS, &Frame::OnThreadStatus, this);
+	this->Bind(EVT_THREAD_ERROR, &Frame::OnThreadError, this);
 }
 
 /*virtual*/ Frame::~Frame()
@@ -63,43 +65,10 @@ Frame::Frame() : wxFrame(nullptr, wxID_ANY, "OpenVCR Demo", wxDefaultPosition, w
 
 void Frame::OnClose(wxCloseEvent& event)
 {
-	OpenVCR::Error error;
-
 	if (wxGetApp().machine.IsOn())
-		wxGetApp().machine.PowerOff(error);
-
-	wxGetApp().machine.SetVideoSource(nullptr, true, error);
-	wxGetApp().machine.ClearAllVideoDestinations(true, error);
-
-	if (error.GetCount() > 0)
-		wxMessageBox(error.GetErrorMessage().c_str(), "Error!", wxOK | wxICON_ERROR, this);
-
-	wxFrame::OnCloseWindow(event);
-}
-
-void Frame::OnTimer(wxTimerEvent& event)
-{
-	if (this->inTimer)
-		return;
-
-	this->inTimer = true;
-
-	if (wxGetApp().machine.IsOn())
-	{
-		OpenVCR::Error error;
-		if (!wxGetApp().machine.Tick(error))
-		{
-			wxMessageBox(error.GetErrorMessage().c_str(), "Error!", wxOK | wxICON_ERROR, this);
-			wxGetApp().machine.PowerOff(error);
-		}
-		else
-		{
-			double framePos = wxGetApp().machine.GetFramePosition();
-			this->GetStatusBar()->SetStatusText(wxString::Format("Frame: %d", long(::floor(framePos))));
-		}
-	}
-
-	this->inTimer = false;
+		wxMessageBox("Please power off the machine before you leave.  (I'm too lazy to do it for you.)", "Error!", wxOK | wxICON_ERROR);
+	else
+		wxFrame::OnCloseWindow(event);
 }
 
 void Frame::OnUpdateUI(wxUpdateUIEvent& event)
@@ -148,16 +117,46 @@ void Frame::OnPowerMachine(wxCommandEvent& event)
 
 	if (event.GetId() == ID_PowerOnMachine)
 	{
-		if (!wxGetApp().machine.PowerOn(error))
-			wxGetApp().machine.PowerOff(error);
+		if (!this->thread)
+		{
+			this->thread = new Thread(this);
+			this->thread->Run();
+		}
 	}
 	else if (event.GetId() == ID_PowerOffMachine)
 	{
-		wxGetApp().machine.PowerOff(error);
+		if (this->thread)
+		{
+			this->thread->exitSignaled = true;
+			this->thread->Wait();
+			delete this->thread;
+			this->thread = nullptr;
+		}
 	}
+}
 
-	if (error.GetCount() > 0)
-		wxMessageBox(error.GetErrorMessage().c_str(), "Error", wxOK | wxICON_ERROR, this);
+void Frame::OnThreadEntering(wxThreadEvent& event)
+{
+}
+
+void Frame::OnThreadExiting(wxThreadEvent& event)
+{
+	if (this->thread)
+	{
+		this->thread->Wait();
+		delete this->thread;
+		this->thread = nullptr;
+	}
+}
+
+void Frame::OnThreadError(ThreadErrorEvent& event)
+{
+	wxMessageBox(event.errorMsg, "Error!", wxOK | wxICON_ERROR, this);
+}
+
+void Frame::OnThreadStatus(ThreadStatusEvent& event)	// TODO: Why is this never called?
+{
+	this->GetStatusBar()->SetStatusText(event.statusMsg);
 }
 
 void Frame::OnSetVideoSource(wxCommandEvent& event)

@@ -13,12 +13,18 @@
     <ClInclude Include="Frame.h">
       <Filter>Sources</Filter>
     </ClInclude>
+    <ClInclude Include="Thread.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Application.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="Frame.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Thread.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
   </ItemGroup>
