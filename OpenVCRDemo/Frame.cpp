@@ -6,8 +6,9 @@
 #include <wx/menu.h>
 #include <wx/msgdlg.h>
 #include <wx/filedlg.h>
+#include <inttypes.h>
 
-Frame::Frame() : wxFrame(nullptr, wxID_ANY, "OpenVCR Demo"), timer(this, ID_Timer)
+Frame::Frame() : wxFrame(nullptr, wxID_ANY, "OpenVCR Demo", wxDefaultPosition, wxSize(512, 512)), timer(this, ID_Timer)
 {
 	this->inTimer = false;
 
@@ -186,12 +187,12 @@ void Frame::OnAddVideoDestination(wxCommandEvent& event)
 
 	if (event.GetId() == ID_AddWindowVideoDestination)
 	{
-		HANDLE windowHandle = (HANDLE)this->GetHWND();
+		HWND windowHandle = (HWND)this->GetHWND();
 		auto windowVideoDestination = new OpenVCR::WindowVideoDestination();
 		windowVideoDestination->SetWindowHandle(windowHandle);
 		wxGetApp().machine.AddVideoDestination(windowVideoDestination, error);
 		if (error.GetCount() == 0)
-			wxMessageBox(wxString::Format("Window video destination set to HWND: 0x%08x", uintptr_t(windowHandle)), "Message", wxOK | wxICON_INFORMATION, this);
+			wxMessageBox(wxString::Format("Window video destination set to HWND: %" PRIxPTR, uintptr_t(windowHandle)), "Message", wxOK | wxICON_INFORMATION, this);
 	}
 	else if (event.GetId() == ID_AddFileVideoDestination)
 	{

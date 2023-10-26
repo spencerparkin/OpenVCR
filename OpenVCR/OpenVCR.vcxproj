@@ -85,7 +85,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>opencv_world480d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opencv_world480d.lib;%(AdditionalDependencies);d3d11.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>E:\OpenCV\build\x64\vc16\lib</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -108,7 +108,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>opencv_world480.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opencv_world480.lib;%(AdditionalDependencies);d3d11.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>E:\OpenCV\build\x64\vc16\lib</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -127,7 +127,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>opencv_world480d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opencv_world480d.lib;%(AdditionalDependencies);d3d11.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>E:\OpenCV\build\x64\vc16\lib</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -150,7 +150,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>opencv_world480.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opencv_world480.lib;%(AdditionalDependencies);d3d11.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>E:\OpenCV\build\x64\vc16\lib</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
