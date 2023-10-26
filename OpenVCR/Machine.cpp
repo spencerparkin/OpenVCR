@@ -131,6 +131,8 @@ bool Machine::Tick(Error& error)
 			this->framePosition += this->frameRateFPP;
 		else
 			this->frameDirty = false;
+
+		pushFrame = true;
 	}
 
 	if (this->pullMethod != SourcePullMethod::SET_FRAME_POS_MANUAL)

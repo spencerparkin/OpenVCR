@@ -2,6 +2,7 @@
 
 #include <wx/frame.h>
 #include <wx/timer.h>
+#include <wx/slider.h>
 #include "Thread.h"
 
 class Thread;
@@ -36,6 +37,12 @@ public:
 	void OnThreadExiting(wxThreadEvent& event);
 	void OnThreadError(ThreadErrorEvent& event);
 	void OnThreadStatus(ThreadStatusEvent& event);
+	void OnSliderChanged(wxScrollEvent& event);
+
+	void StartThread();
+	void StopThread();
 
 	Thread* thread;
+	wxSlider* slider;
+	wxControl* renderControl;
 };

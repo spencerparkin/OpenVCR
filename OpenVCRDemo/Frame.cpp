@@ -7,6 +7,7 @@
 #include <wx/menu.h>
 #include <wx/msgdlg.h>
 #include <wx/filedlg.h>
+#include <wx/sizer.h>
 #include <inttypes.h>
 
 Frame::Frame() : wxFrame(nullptr, wxID_ANY, "OpenVCR Demo", wxDefaultPosition, wxSize(512, 512))
@@ -57,6 +58,17 @@ Frame::Frame() : wxFrame(nullptr, wxID_ANY, "OpenVCR Demo", wxDefaultPosition, w
 	this->Bind(EVT_THREAD_EXITING, &Frame::OnThreadExiting, this);
 	this->Bind(EVT_THREAD_STATUS, &Frame::OnThreadStatus, this);
 	this->Bind(EVT_THREAD_ERROR, &Frame::OnThreadError, this);
+	this->Bind(wxEVT_SCROLL_THUMBTRACK, &Frame::OnSliderChanged, this);
+
+	this->slider = new wxSlider(this, wxID_ANY, 0, 0, 2048, wxDefaultPosition, wxSize(1024, -1));	// TODO: How do I just make it take up the full width?
+
+	this->renderControl = new wxControl(this, wxID_ANY);
+
+	wxBoxSizer* boxSizer = new wxBoxSizer(wxVERTICAL);
+	boxSizer->Add(this->renderControl, 1, wxALL | wxGROW, 0);
+	boxSizer->Add(this->slider, 0, wxALL, 0);
+
+	this->SetSizer(boxSizer);
 }
 
 /*virtual*/ Frame::~Frame()
@@ -65,10 +77,9 @@ Frame::Frame() : wxFrame(nullptr, wxID_ANY, "OpenVCR Demo", wxDefaultPosition, w
 
 void Frame::OnClose(wxCloseEvent& event)
 {
-	if (wxGetApp().machine.IsOn())
-		wxMessageBox("Please power off the machine before you leave.  (I'm too lazy to do it for you.)", "Error!", wxOK | wxICON_ERROR);
-	else
-		wxFrame::OnCloseWindow(event);
+	this->StopThread();
+	
+	wxFrame::OnCloseWindow(event);
 }
 
 void Frame::OnUpdateUI(wxUpdateUIEvent& event)
@@ -111,27 +122,61 @@ void Frame::OnUpdateUI(wxUpdateUIEvent& event)
 	}
 }
 
+void Frame::OnSliderChanged(wxScrollEvent& event)
+{
+	if (wxGetApp().machine.IsOn())
+	{
+		if (wxGetApp().machine.GetPullMethod() != OpenVCR::Machine::SourcePullMethod::SET_FRAME_POS_MANUAL)
+		{
+			wxGetApp().machine.SetPullMethod(OpenVCR::Machine::SourcePullMethod::SET_FRAME_POS_MANUAL);
+		}
+
+		double lerpAlpha = double(this->slider->GetValue()) / double(this->slider->GetMax());
+		
+		long frameCount = 0;
+		OpenVCR::Error error;
+		if (!wxGetApp().machine.GetVideoSource()->GetFrameCount(frameCount, error))
+		{
+			wxMessageBox(error.GetErrorMessage(), "Error!", wxOK | wxICON_ERROR, this);
+			return;
+		}
+		
+		double framePosition = lerpAlpha * double(frameCount - 1);
+		wxGetApp().machine.SetFramePosition(framePosition);
+	}
+}
+
 void Frame::OnPowerMachine(wxCommandEvent& event)
 {
 	OpenVCR::Error error;
 
 	if (event.GetId() == ID_PowerOnMachine)
 	{
-		if (!this->thread)
-		{
-			this->thread = new Thread(this);
-			this->thread->Run();
-		}
+		this->StartThread();
 	}
 	else if (event.GetId() == ID_PowerOffMachine)
 	{
-		if (this->thread)
-		{
-			this->thread->exitSignaled = true;
-			this->thread->Wait();
-			delete this->thread;
-			this->thread = nullptr;
-		}
+		this->StopThread();
+	}
+}
+
+void Frame::StartThread()
+{
+	if (!this->thread)
+	{
+		this->thread = new Thread(this);
+		this->thread->Run();
+	}
+}
+
+void Frame::StopThread()
+{
+	if (this->thread)
+	{
+		this->thread->exitSignaled = true;
+		this->thread->Wait();
+		delete this->thread;
+		this->thread = nullptr;
 	}
 }
 
@@ -186,7 +231,7 @@ void Frame::OnAddVideoDestination(wxCommandEvent& event)
 
 	if (event.GetId() == ID_AddWindowVideoDestination)
 	{
-		HWND windowHandle = (HWND)this->GetHWND();
+		HWND windowHandle = (HWND)this->renderControl->GetHWND();
 		auto windowVideoDestination = new OpenVCR::WindowVideoDestination();
 		windowVideoDestination->SetWindowHandle(windowHandle);
 		wxGetApp().machine.AddVideoDestination(windowVideoDestination, error);
