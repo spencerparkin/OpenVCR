@@ -88,8 +88,12 @@ FileVideoDestination::FileVideoDestination()
 		return false;
 	}
 
-	//this->videoWriter->write(*frame.data);
-	*this->videoWriter << *frame.data;
+	if (!this->suspendFrameWrites)
+	{
+		//this->videoWriter->write(*frame.data);
+		*this->videoWriter << *frame.data;
+	}
+
 	return true;
 }
 
@@ -101,4 +105,19 @@ void FileVideoDestination::SetVideoFilePath(const std::string& videoFilePath)
 const std::string& FileVideoDestination::GetVideoFilePath() const
 {
 	return *this->videoFilePath;
+}
+
+void FileVideoDestination::Pause()
+{
+	this->suspendFrameWrites = true;
+}
+
+void FileVideoDestination::Resume()
+{
+	this->suspendFrameWrites = false;
+}
+
+bool FileVideoDestination::IsPaused() const
+{
+	return this->suspendFrameWrites;
 }

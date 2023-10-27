@@ -18,11 +18,16 @@ namespace OpenVCR
 		void SetVideoFilePath(const std::string& videoFilePath);
 		const std::string& GetVideoFilePath() const;
 
+		void Pause();
+		void Resume();
+		bool IsPaused() const;
+
 	private:
 		cv::VideoWriter* videoWriter;
 		std::string* videoFilePath;
 		double frameRateFPS;
 		int encoderFourCC;
 		cv::Size* frameSize;
+		bool suspendFrameWrites;
 	};
 }
