@@ -2,6 +2,7 @@
 #include "Error.h"
 #include "VideoSource.h"
 #include "VideoDestination.h"
+#include <opencv2/core/utils/logger.hpp>
 
 using namespace OpenVCR;
 
@@ -42,6 +43,12 @@ bool Machine::PowerOn(Error& error)
 		error.Add("No video source configured.");
 		return false;
 	}
+
+#if defined _DEBUG
+	cv::utils::logging::setLogLevel(cv::utils::logging::LOG_LEVEL_VERBOSE);
+#else
+	cv::utils::logging::setLogLevel(cv::utils::logging::LOG_LEVEL_SILENT);
+#endif
 
 	if (!this->videoSource->PowerOn(error))
 	{

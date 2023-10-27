@@ -9,7 +9,7 @@ FileVideoDestination::FileVideoDestination()
 {
 	this->videoWriter = nullptr;
 	this->videoFilePath = new std::string();
-	this->frameRateFPS = 0.0;
+	this->frameRateFPS = 30.0;
 	this->encoderFourCC = 0;
 	this->frameSize = new cv::Size(0, 0);
 }
