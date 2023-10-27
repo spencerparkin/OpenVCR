@@ -7,7 +7,8 @@ namespace OpenVCR
 	class Error;
 	class Frame;
 
-	// Derivatives of this class would include a web-cam, video file with decoding, IP-camera, etc.
+	// This abstraction might be silly since the vc::videoCapture class already is this type of abstraction.
+	// In any case, this is OpenVCR's abstraction layer for vc::videoCapture in the context of the derivative.
 	class OPEN_VCR_API VideoSource
 	{
 	public:

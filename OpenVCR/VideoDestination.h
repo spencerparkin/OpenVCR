@@ -7,7 +7,8 @@ namespace OpenVCR
 	class Error;
 	class Frame;
 
-	// Derivatives of this class would include a window, DirectX texture, a video file with encoding, etc.
+	// Derivatives of this class do stuff with frames generated from a video source, such
+	// as dump to file or screen using various encodings or graphics APIS (e.g., DirectX or OpenGL.)
 	class OPEN_VCR_API VideoDestination
 	{
 	public:

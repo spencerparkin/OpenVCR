@@ -16,8 +16,7 @@ public:
 	enum
 	{
 		ID_SetFileVideoSource = wxID_HIGHEST,
-		ID_SetIPCameraVideoSource,
-		ID_SetWebCamVideoSource,
+		ID_SetCameraVideoSource,
 		ID_AddFileVideoDestination,
 		ID_AddWindowVideoDestination,
 		ID_PowerOnMachine,

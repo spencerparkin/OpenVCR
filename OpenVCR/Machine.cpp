@@ -140,6 +140,12 @@ bool Machine::Tick(Error& error)
 
 	if (pushFrame)
 	{
+		if (this->frame.data->empty())
+		{
+			error.Add("Can't push empty frame.");
+			return false;
+		}
+
 		// TODO: Run frame through filters here?
 
 		for (VideoDestination* videoDestination : *this->videoDestinationArray)

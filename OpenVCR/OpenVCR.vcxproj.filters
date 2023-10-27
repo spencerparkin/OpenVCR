@@ -11,6 +11,9 @@
     <Filter Include="Sources\VideoDestinations">
       <UniqueIdentifier>{4d24a14b-ecd8-4b84-827a-8c5c45155e47}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\VideoFilters">
+      <UniqueIdentifier>{443a7681-bea1-4aac-bec0-0de59af4eb86}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Machine.h">
@@ -37,6 +40,9 @@
     <ClInclude Include="Error.h">
       <Filter>Sources</Filter>
     </ClInclude>
+    <ClInclude Include="CameraVideoSource.h">
+      <Filter>Sources\VideoSources</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Machine.cpp">
@@ -59,6 +65,9 @@
     </ClCompile>
     <ClCompile Include="Error.cpp">
       <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="CameraVideoSource.cpp">
+      <Filter>Sources\VideoSources</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

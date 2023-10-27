@@ -50,8 +50,12 @@ const std::string& FileVideoSource::GetVideoFilePath()
 
 /*virtual*/ bool FileVideoSource::PowerOff(Error& error)
 {
-	delete this->videoCapture;
-	this->videoCapture = nullptr;
+	if (this->videoCapture)
+	{
+		this->videoCapture->release();
+		delete this->videoCapture;
+		this->videoCapture = nullptr;
+	}
 
 	return true;
 }
@@ -64,7 +68,7 @@ const std::string& FileVideoSource::GetVideoFilePath()
 
 /*virtual*/ bool FileVideoSource::GetFrame(Frame& frame, long i, Error& error)
 {
-	if (!this->videoCapture) // || !this->videoCapture->isOpened())		TODO: Is this call expensive?
+	if (!this->videoCapture || !this->videoCapture->isOpened())
 	{
 		error.Add("Can't get frame if video capture is not open.");
 		return false;

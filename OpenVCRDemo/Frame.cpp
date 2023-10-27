@@ -2,12 +2,14 @@
 #include "Application.h"
 #include "Thread.h"
 #include <WindowVideoDestination.h>
-#include <Error.h>
 #include <FileVideoSource.h>
+#include <CameraVideoSource.h>
+#include <Error.h>
 #include <wx/menu.h>
 #include <wx/msgdlg.h>
 #include <wx/filedlg.h>
 #include <wx/sizer.h>
+#include <wx/textdlg.h>
 #include <inttypes.h>
 
 Frame::Frame() : wxFrame(nullptr, wxID_ANY, "OpenVCR Demo", wxDefaultPosition, wxSize(512, 512))
@@ -19,8 +21,7 @@ Frame::Frame() : wxFrame(nullptr, wxID_ANY, "OpenVCR Demo", wxDefaultPosition, w
 	fileMenu->Append(new wxMenuItem(fileMenu, ID_PowerOffMachine, "Power Off Machine"));
 	fileMenu->AppendSeparator();
 	fileMenu->Append(new wxMenuItem(fileMenu, ID_SetFileVideoSource, "Set File Video Source"));
-	fileMenu->Append(new wxMenuItem(fileMenu, ID_SetWebCamVideoSource, "Set Web-Cam Video Source"));
-	fileMenu->Append(new wxMenuItem(fileMenu, ID_SetIPCameraVideoSource, "Set IP-Camera Video Source"));
+	fileMenu->Append(new wxMenuItem(fileMenu, ID_SetCameraVideoSource, "Set Camera Video Source"));
 	fileMenu->AppendSeparator();
 	fileMenu->Append(new wxMenuItem(fileMenu, ID_AddFileVideoDestination, "Add File Video Destination"));
 	fileMenu->Append(new wxMenuItem(fileMenu, ID_AddWindowVideoDestination, "Add Window Video Destination"));
@@ -39,8 +40,7 @@ Frame::Frame() : wxFrame(nullptr, wxID_ANY, "OpenVCR Demo", wxDefaultPosition, w
 
 	this->Bind(wxEVT_MENU, &Frame::OnAddVideoDestination, this, ID_AddFileVideoDestination);
 	this->Bind(wxEVT_MENU, &Frame::OnAddVideoDestination, this, ID_AddWindowVideoDestination);
-	this->Bind(wxEVT_MENU, &Frame::OnSetVideoSource, this, ID_SetWebCamVideoSource);
-	this->Bind(wxEVT_MENU, &Frame::OnSetVideoSource, this, ID_SetIPCameraVideoSource);
+	this->Bind(wxEVT_MENU, &Frame::OnSetVideoSource, this, ID_SetCameraVideoSource);
 	this->Bind(wxEVT_MENU, &Frame::OnSetVideoSource, this, ID_SetFileVideoSource);
 	this->Bind(wxEVT_MENU, &Frame::OnPowerMachine, this, ID_PowerOnMachine);
 	this->Bind(wxEVT_MENU, &Frame::OnPowerMachine, this, ID_PowerOffMachine);
@@ -50,8 +50,7 @@ Frame::Frame() : wxFrame(nullptr, wxID_ANY, "OpenVCR Demo", wxDefaultPosition, w
 	this->Bind(wxEVT_UPDATE_UI, &Frame::OnUpdateUI, this, ID_PowerOffMachine);
 	this->Bind(wxEVT_UPDATE_UI, &Frame::OnUpdateUI, this, ID_AddFileVideoDestination);
 	this->Bind(wxEVT_UPDATE_UI, &Frame::OnUpdateUI, this, ID_AddWindowVideoDestination);
-	this->Bind(wxEVT_UPDATE_UI, &Frame::OnUpdateUI, this, ID_SetWebCamVideoSource);
-	this->Bind(wxEVT_UPDATE_UI, &Frame::OnUpdateUI, this, ID_SetIPCameraVideoSource);
+	this->Bind(wxEVT_UPDATE_UI, &Frame::OnUpdateUI, this, ID_SetCameraVideoSource);
 	this->Bind(wxEVT_UPDATE_UI, &Frame::OnUpdateUI, this, ID_SetFileVideoSource);
 	this->Bind(wxEVT_CLOSE_WINDOW, &Frame::OnClose, this);
 	this->Bind(EVT_THREAD_ENTERING, &Frame::OnThreadEntering, this);
@@ -112,8 +111,7 @@ void Frame::OnUpdateUI(wxUpdateUIEvent& event)
 			break;
 		}
 		case ID_AddFileVideoDestination:
-		case ID_SetWebCamVideoSource:
-		case ID_SetIPCameraVideoSource:
+		case ID_SetCameraVideoSource:
 		case ID_SetFileVideoSource:
 		{
 			event.Enable(!wxGetApp().machine.IsOn());
@@ -199,7 +197,7 @@ void Frame::OnThreadError(ThreadErrorEvent& event)
 	wxMessageBox(event.errorMsg, "Error!", wxOK | wxICON_ERROR, this);
 }
 
-void Frame::OnThreadStatus(ThreadStatusEvent& event)	// TODO: Why is this never called?
+void Frame::OnThreadStatus(ThreadStatusEvent& event)
 {
 	this->GetStatusBar()->SetStatusText(event.statusMsg);
 }
@@ -218,6 +216,23 @@ void Frame::OnSetVideoSource(wxCommandEvent& event)
 			wxGetApp().machine.SetVideoSource(fileVideoSource, true, error);
 			if (error.GetCount() == 0)
 				wxMessageBox("File video source set to: " + wxString(fileVideoSource->GetVideoFilePath().c_str()), "Message", wxOK | wxICON_INFORMATION, this);
+		}
+	}
+	else if (event.GetId() == ID_SetCameraVideoSource)
+	{
+		wxTextEntryDialog textDialog(this, "Enter camera URl or device number.", "Camera", "0");
+		if (wxID_OK == textDialog.ShowModal())
+		{
+			auto cameraVideoSource = new OpenVCR::CameraVideoSource();
+			wxString cameraText = textDialog.GetValue();
+			long deviceNumber = 0;
+			if (cameraText.ToCLong(&deviceNumber))
+				cameraVideoSource->SetDeviceNumber((int)deviceNumber);
+			else
+				cameraVideoSource->SetCameraURL((const char*)cameraText.c_str());
+			wxGetApp().machine.SetVideoSource(cameraVideoSource, true, error);
+			if (error.GetCount() == 0)
+				wxMessageBox("Camera video source set to: " + cameraText, "Message", wxOK | wxICON_INFORMATION, this);
 		}
 	}
 
