@@ -158,6 +158,7 @@
     <ClInclude Include="CameraVideoSource.h" />
     <ClInclude Include="Common.h" />
     <ClInclude Include="Error.h" />
+    <ClInclude Include="FileVideoDestination.h" />
     <ClInclude Include="FileVideoSource.h" />
     <ClInclude Include="Frame.h" />
     <ClInclude Include="VideoDestination.h" />
@@ -168,6 +169,7 @@
   <ItemGroup>
     <ClCompile Include="CameraVideoSource.cpp" />
     <ClCompile Include="Error.cpp" />
+    <ClCompile Include="FileVideoDestination.cpp" />
     <ClCompile Include="FileVideoSource.cpp" />
     <ClCompile Include="Frame.cpp" />
     <ClCompile Include="Machine.cpp" />

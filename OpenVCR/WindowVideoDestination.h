@@ -15,7 +15,7 @@ namespace OpenVCR
 		void SetWindowHandle(HWND windowHandle);
 		HWND GetWindowHandle();
 
-		virtual bool PowerOn(Error& error) override;
+		virtual bool PowerOn(Machine* machine, Error& error) override;
 		virtual bool PowerOff(Error& error) override;
 		virtual bool AddFrame(Frame& frame, Error& error) override;
 

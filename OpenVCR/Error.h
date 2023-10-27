@@ -13,6 +13,7 @@ namespace OpenVCR
 		void Add(const std::string& errorMsg);
 		std::string GetErrorMessage() const;
 		int GetCount() const;
+		void Clear();
 
 	private:
 		std::vector<std::string>* errorArray;

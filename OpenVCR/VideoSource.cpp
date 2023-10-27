@@ -4,6 +4,7 @@ using namespace OpenVCR;
 
 VideoSource::VideoSource()
 {
+	this->videoCapture = nullptr;
 }
 
 /*virtual*/ VideoSource::~VideoSource()
@@ -38,4 +39,9 @@ VideoSource::VideoSource()
 /*virtual*/ bool VideoSource::GetNextFrame(Frame& frame, Error& error)
 {
 	return false;
+}
+
+cv::VideoCapture* VideoSource::GetVideoCapture()
+{
+	return this->videoCapture;
 }

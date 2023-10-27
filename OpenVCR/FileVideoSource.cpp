@@ -7,7 +7,6 @@ using namespace OpenVCR;
 FileVideoSource::FileVideoSource()
 {
 	this->videoFilePath = new std::string();
-	this->videoCapture = nullptr;
 	this->frameCount = 0;
 }
 

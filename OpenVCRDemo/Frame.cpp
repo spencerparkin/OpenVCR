@@ -1,9 +1,10 @@
 #include "Frame.h"
 #include "Application.h"
 #include "Thread.h"
-#include <WindowVideoDestination.h>
 #include <FileVideoSource.h>
 #include <CameraVideoSource.h>
+#include <FileVideoDestination.h>
+#include <WindowVideoDestination.h>
 #include <Error.h>
 #include <wx/menu.h>
 #include <wx/msgdlg.h>
@@ -258,7 +259,12 @@ void Frame::OnAddVideoDestination(wxCommandEvent& event)
 		wxFileDialog saveFileDialog(this, "Choose Video File", "", "", "Any File (*.*)|*.*", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 		if (wxID_OK == saveFileDialog.ShowModal())
 		{
-			//...
+			auto fileVideoDestination = new OpenVCR::FileVideoDestination();
+			wxString fileVideoPath = saveFileDialog.GetPath();
+			fileVideoDestination->SetVideoFilePath((const char*)fileVideoPath.c_str());
+			wxGetApp().machine.AddVideoDestination(fileVideoDestination, error);
+			if (error.GetCount() == 0)
+				wxMessageBox(wxString("File video destination added for: ") + fileVideoPath, "Message", wxOK | wxICON_INFORMATION, this);
 		}
 	}
 

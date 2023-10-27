@@ -43,6 +43,9 @@
     <ClInclude Include="CameraVideoSource.h">
       <Filter>Sources\VideoSources</Filter>
     </ClInclude>
+    <ClInclude Include="FileVideoDestination.h">
+      <Filter>Sources\VideoDestinations</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Machine.cpp">
@@ -68,6 +71,9 @@
     </ClCompile>
     <ClCompile Include="CameraVideoSource.cpp">
       <Filter>Sources\VideoSources</Filter>
+    </ClCompile>
+    <ClCompile Include="FileVideoDestination.cpp">
+      <Filter>Sources\VideoDestinations</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

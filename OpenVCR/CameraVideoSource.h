@@ -1,7 +1,6 @@
 #pragma once
 
 #include "VideoSource.h"
-#include <opencv2/videoio.hpp>
 
 namespace OpenVCR
 {
@@ -28,7 +27,6 @@ namespace OpenVCR
 
 	private:
 
-		cv::VideoCapture* videoCapture;
 		std::string* cameraURL;
 		int deviceNumber;
 		long frameNumber;

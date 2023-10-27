@@ -36,7 +36,7 @@ HWND WindowVideoDestination::GetWindowHandle()
 	return this->windowHandle;
 }
 
-/*virtual*/ bool WindowVideoDestination::PowerOn(Error& error)
+/*virtual*/ bool WindowVideoDestination::PowerOn(Machine* machine, Error& error)
 {
     RECT clientRect;
     if (!::GetClientRect(this->windowHandle, &clientRect))

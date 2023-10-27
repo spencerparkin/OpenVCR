@@ -29,3 +29,8 @@ std::string Error::GetErrorMessage() const
 		errorMsg += error + "\n";
 	return errorMsg;
 }
+
+void Error::Clear()
+{
+	this->errorArray->clear();
+}

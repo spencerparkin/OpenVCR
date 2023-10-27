@@ -51,7 +51,7 @@ bool Machine::PowerOn(Error& error)
 
 	for (VideoDestination* videoDestination : *this->videoDestinationArray)
 	{
-		if (!videoDestination->PowerOn(error))
+		if (!videoDestination->PowerOn(this, error))
 		{
 			error.Add("Video destination power-on failed.");
 			return false;

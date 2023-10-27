@@ -47,6 +47,9 @@ Thread::Thread(wxEvtHandler* eventHandler) : wxThread(wxTHREAD_JOINABLE)
 		if (!machine.PowerOn(error))
 		{
 			::wxQueueEvent(this->eventHandler, new ThreadErrorEvent(error.GetErrorMessage()));
+			error.Clear();
+			if (!machine.PowerOff(error))
+				::wxQueueEvent(this->eventHandler, new ThreadErrorEvent(error.GetErrorMessage()));
 			break;
 		}
 

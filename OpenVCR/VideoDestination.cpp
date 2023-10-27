@@ -10,7 +10,7 @@ VideoDestination::VideoDestination()
 {
 }
 
-/*virtual*/ bool VideoDestination::PowerOn(Error& error)
+/*virtual*/ bool VideoDestination::PowerOn(Machine* machine, Error& error)
 {
 	return false;
 }

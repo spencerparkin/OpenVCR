@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Common.h"
+#include <opencv2/videoio.hpp>
 
 namespace OpenVCR
 {
@@ -21,5 +22,10 @@ namespace OpenVCR
 		virtual bool GetFrameNumber(long& frameNumber, Error& error);
 		virtual bool GetFrame(Frame& frame, long i, Error& error);
 		virtual bool GetNextFrame(Frame& frame, Error& error);
+
+		cv::VideoCapture* GetVideoCapture();
+
+	protected:
+		cv::VideoCapture* videoCapture;
 	};
 }

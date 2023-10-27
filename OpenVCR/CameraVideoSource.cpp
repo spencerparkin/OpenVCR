@@ -6,7 +6,6 @@ using namespace OpenVCR;
 
 CameraVideoSource::CameraVideoSource()
 {
-	this->videoCapture = nullptr;
 	this->deviceNumber = 0;
 	this->cameraURL = new std::string();
 	this->frameNumber = 0;

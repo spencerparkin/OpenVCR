@@ -24,7 +24,6 @@ namespace OpenVCR
 	private:
 
 		std::string* videoFilePath;
-		cv::VideoCapture* videoCapture;
 		long frameCount;
 	};
 }
