@@ -46,6 +46,12 @@
     <ClInclude Include="FileVideoDestination.h">
       <Filter>Sources\VideoDestinations</Filter>
     </ClInclude>
+    <ClInclude Include="RotationFilter.h">
+      <Filter>Sources\VideoFilters</Filter>
+    </ClInclude>
+    <ClInclude Include="FrameFilter.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Machine.cpp">
@@ -74,6 +80,12 @@
     </ClCompile>
     <ClCompile Include="FileVideoDestination.cpp">
       <Filter>Sources\VideoDestinations</Filter>
+    </ClCompile>
+    <ClCompile Include="FrameFilter.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="RotationFilter.cpp">
+      <Filter>Sources\VideoFilters</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

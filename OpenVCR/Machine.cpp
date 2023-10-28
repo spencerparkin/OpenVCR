@@ -2,6 +2,7 @@
 #include "Error.h"
 #include "VideoSource.h"
 #include "VideoDestination.h"
+#include "FrameFilter.h"
 #include <opencv2/core/utils/logger.hpp>
 
 using namespace OpenVCR;
@@ -11,6 +12,7 @@ Machine::Machine()
 	this->isPoweredOn = false;
 	this->videoSource = nullptr;
 	this->videoDestinationArray = new std::vector<VideoDestination*>();
+	this->frameFilterArray = new std::vector<FrameFilter*>();
 	this->lastClockTime = 0;
 	this->pullMethod = SourcePullMethod::GET_NEXT_FRAME_QUICKEST;
 	this->pullRatePPS = 30.0;
@@ -23,6 +25,7 @@ Machine::Machine()
 /*virtual*/ Machine::~Machine()
 {
 	delete this->videoDestinationArray;
+	delete this->frameFilterArray;
 }
 
 bool Machine::IsOn()
@@ -153,10 +156,28 @@ bool Machine::Tick(Error& error)
 			return false;
 		}
 
-		// TODO: Run frame through filters here?
+		// Filter the generated frame through all the filters, if any.
+		Frame otherFrame;
+		Frame* doubleBuffer[2] = { &this->frame, &otherFrame };
+		int i = 0;
+		for (FrameFilter* frameFilter : *this->frameFilterArray)
+		{
+			Frame* inputFrame = doubleBuffer[i];
+			Frame* outputFrame = doubleBuffer[1 - i];
 
+			if (!frameFilter->Filter(*inputFrame, *outputFrame, error))
+			{
+				error.Add("Filter \"" + *frameFilter->name + "\" failed!");
+				return false;
+			}
+
+			i = 1 - i;
+		}
+
+		// Send the final frame to all the video destinations.
+		Frame* finalFrame = doubleBuffer[i];
 		for (VideoDestination* videoDestination : *this->videoDestinationArray)
-			if (!videoDestination->AddFrame(this->frame, error))
+			if (!videoDestination->AddFrame(*finalFrame, error))
 				return false;
 	}
 
@@ -225,6 +246,73 @@ bool Machine::ClearAllVideoDestinations(bool deleteToo, Error& error)
 
 	this->videoDestinationArray->clear();
 	return true;
+}
+
+bool Machine::AddFrameFilter(FrameFilter* frameFilter, Error& error)
+{
+	FrameFilter* existingFilter = this->FindFrameFilter(*frameFilter->name);
+	if (existingFilter)
+	{
+		error.Add("There already exists a filter with name: " + *frameFilter->name);
+		return false;
+	}
+
+	this->frameFilterArray->push_back(frameFilter);
+	return true;
+}
+
+bool Machine::RemoveFrameFilter(const std::string& frameFilterName, bool deleteToo, Error& error)
+{
+	std::vector<FrameFilter*>::iterator iter;
+	FrameFilter* frameFilter = this->FindFrameFilter(frameFilterName, &iter);
+	if (!frameFilter)
+	{
+		error.Add("Did not find frame filter with name: " + frameFilterName);
+		return false;
+	}
+
+	if (deleteToo)
+		delete frameFilter;
+
+	this->frameFilterArray->erase(iter);
+	return true;
+}
+
+FrameFilter* Machine::FindFrameFilter(const std::string& frameFilterName, std::vector<FrameFilter*>::iterator* foundIter /*= nullptr*/)
+{
+	for (std::vector<FrameFilter*>::iterator iter = this->frameFilterArray->begin(); iter != this->frameFilterArray->end(); iter++)
+	{
+		FrameFilter* frameFilter = *iter;
+		if (*frameFilter->name == frameFilterName)
+		{
+			if (foundIter)
+				*foundIter = iter;
+
+			return frameFilter;
+		}
+	}
+
+	return nullptr;
+}
+
+bool Machine::ClearAllFrameFilters(bool deleteToo, Error& error)
+{
+	if (deleteToo)
+		for (FrameFilter* frameFilter : *this->frameFilterArray)
+			delete frameFilter;
+
+	this->frameFilterArray->clear();
+	return true;
+}
+
+void Machine::SetPullRate(double pullRate)
+{
+	this->pullRatePPS = pullRate;
+}
+
+double Machine::GetPullRate() const
+{
+	return this->pullRatePPS;
 }
 
 void Machine::SetFrameRate(double frameRateFPP)

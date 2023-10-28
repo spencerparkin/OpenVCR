@@ -8,8 +8,11 @@ namespace OpenVCR
 	class Error;
 	class VideoSource;
 	class VideoDestination;
+	class FrameFilter;
 
 	// TODO: OpenCV appears to leak memory.  Is it going to fill up RAM as we capture or playback?
+	// Note that this class is not thread-safe.  If it's being used from multiple threads, then the
+	// caller needs to handle thread-safety; e.g., with a mutex.
 	class OPEN_VCR_API Machine
 	{
 	public:
@@ -29,6 +32,11 @@ namespace OpenVCR
 
 		VideoDestination* GetVideoDestination(int i);
 		int GetNumVideoDestination();
+
+		bool AddFrameFilter(FrameFilter* frameFilter, Error& error);
+		bool RemoveFrameFilter(const std::string& frameFilterName, bool deleteToo, Error& error);
+		FrameFilter* FindFrameFilter(const std::string& frameFilterName, std::vector<FrameFilter*>::iterator* foundIter = nullptr);
+		bool ClearAllFrameFilters(bool deleteToo, Error& error);
 
 		enum SourcePullMethod
 		{
@@ -56,7 +64,7 @@ namespace OpenVCR
 	private:
 		VideoSource* videoSource;
 		std::vector<VideoDestination*>* videoDestinationArray;
-		// TODO: Add array of frame filters?
+		std::vector<FrameFilter*>* frameFilterArray;
 		Frame frame;
 		bool isPoweredOn;
 		SourcePullMethod pullMethod;
