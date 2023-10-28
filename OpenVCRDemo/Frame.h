@@ -20,6 +20,7 @@ public:
 		ID_AddFileVideoDestination,
 		ID_AddWindowVideoDestination,
 		ID_AddRotationFilter,
+		ID_AddCropFilter,
 		ID_ClearAllFilters,
 		ID_PowerOnMachine,
 		ID_PowerOffMachine,
@@ -44,6 +45,8 @@ public:
 
 	void StartThread();
 	void StopThread();
+
+	bool StringToNumberArray(const wxString& str, std::vector<int>& numberArray);
 
 	Thread* thread;
 	wxSlider* slider;

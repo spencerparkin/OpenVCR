@@ -6,6 +6,7 @@
 #include <FileVideoDestination.h>
 #include <WindowVideoDestination.h>
 #include <RotationFilter.h>
+#include <CropFilter.h>
 #include <Error.h>
 #include <wx/menu.h>
 #include <wx/msgdlg.h>
@@ -13,6 +14,7 @@
 #include <wx/sizer.h>
 #include <wx/textdlg.h>
 #include <wx/numdlg.h>
+#include <wx/tokenzr.h>
 #include <inttypes.h>
 
 Frame::Frame() : wxFrame(nullptr, wxID_ANY, "OpenVCR Demo", wxDefaultPosition, wxSize(512, 512))
@@ -30,6 +32,7 @@ Frame::Frame() : wxFrame(nullptr, wxID_ANY, "OpenVCR Demo", wxDefaultPosition, w
 	fileMenu->Append(new wxMenuItem(fileMenu, ID_AddWindowVideoDestination, "Add Window Video Destination"));
 	fileMenu->AppendSeparator();
 	fileMenu->Append(new wxMenuItem(fileMenu, ID_AddRotationFilter, "Add Rotation Filter"));
+	fileMenu->Append(new wxMenuItem(fileMenu, ID_AddCropFilter, "Add Crop Filter"));
 	fileMenu->AppendSeparator();
 	fileMenu->Append(new wxMenuItem(fileMenu, ID_Exit, "Exit"));
 
@@ -48,6 +51,7 @@ Frame::Frame() : wxFrame(nullptr, wxID_ANY, "OpenVCR Demo", wxDefaultPosition, w
 	this->Bind(wxEVT_MENU, &Frame::OnSetVideoSource, this, ID_SetCameraVideoSource);
 	this->Bind(wxEVT_MENU, &Frame::OnSetVideoSource, this, ID_SetFileVideoSource);
 	this->Bind(wxEVT_MENU, &Frame::OnAddFrameFilter, this, ID_AddRotationFilter);
+	this->Bind(wxEVT_MENU, &Frame::OnAddFrameFilter, this, ID_AddCropFilter);
 	this->Bind(wxEVT_MENU, &Frame::OnClearAllFilters, this, ID_ClearAllFilters);
 	this->Bind(wxEVT_MENU, &Frame::OnPowerMachine, this, ID_PowerOnMachine);
 	this->Bind(wxEVT_MENU, &Frame::OnPowerMachine, this, ID_PowerOffMachine);
@@ -60,6 +64,7 @@ Frame::Frame() : wxFrame(nullptr, wxID_ANY, "OpenVCR Demo", wxDefaultPosition, w
 	this->Bind(wxEVT_UPDATE_UI, &Frame::OnUpdateUI, this, ID_SetCameraVideoSource);
 	this->Bind(wxEVT_UPDATE_UI, &Frame::OnUpdateUI, this, ID_SetFileVideoSource);
 	this->Bind(wxEVT_UPDATE_UI, &Frame::OnUpdateUI, this, ID_AddRotationFilter);
+	this->Bind(wxEVT_UPDATE_UI, &Frame::OnUpdateUI, this, ID_AddCropFilter);
 	this->Bind(wxEVT_UPDATE_UI, &Frame::OnUpdateUI, this, ID_ClearAllFilters);
 	this->Bind(wxEVT_CLOSE_WINDOW, &Frame::OnClose, this);
 	this->Bind(EVT_THREAD_ENTERING, &Frame::OnThreadEntering, this);
@@ -131,6 +136,20 @@ void Frame::OnUpdateUI(wxUpdateUIEvent& event)
 	}
 }
 
+bool Frame::StringToNumberArray(const wxString& str, std::vector<int>& numberArray)
+{
+	wxStringTokenizer tokenizer(str, ",");
+	while (tokenizer.HasMoreTokens())
+	{
+		wxString token = tokenizer.GetNextToken();
+		long value = 0;
+		if (!token.ToCLong(&value))
+			return false;
+		numberArray.push_back((int)value);
+	}
+	return true;
+}
+
 void Frame::OnAddFrameFilter(wxCommandEvent& event)
 {
 	OpenVCR::Error error;
@@ -146,6 +165,32 @@ void Frame::OnAddFrameFilter(wxCommandEvent& event)
 			wxGetApp().machine.AddFrameFilter(rotationFilter, error);
 			if (error.GetCount() == 0)
 				wxMessageBox("Filter added!", "Success", wxOK | wxICON_INFORMATION, this);
+			else
+				delete rotationFilter;
+		}
+	}
+	else if (event.GetId() == ID_AddCropFilter)
+	{
+		wxTextEntryDialog cropDialog(this, "Enter crop parameters (left,right,top,bottom).", "Crop", "0,0,0,0");
+		if (wxID_OK == cropDialog.ShowModal())
+		{
+			std::vector<int> cropParams;
+			if (!this->StringToNumberArray(cropDialog.GetValue(), cropParams) || cropParams.size() != 4)
+				wxMessageBox("Didn't parse string input as four numbers separated by commas, no spaces.", "Error!", wxOK | wxICON_ERROR, this);
+			else
+			{
+				auto cropFilter = new OpenVCR::CropFilter();
+				*cropFilter->name = "Cropper";
+				cropFilter->leftCrop = cropParams[0];
+				cropFilter->rightCrop = cropParams[1];
+				cropFilter->topCrop = cropParams[2];
+				cropFilter->bottomCrop = cropParams[3];
+				wxGetApp().machine.AddFrameFilter(cropFilter, error);
+				if (error.GetCount() == 0)
+					wxMessageBox("Filter added!", "Success", wxOK | wxICON_INFORMATION, this);
+				else
+					delete cropFilter;
+			}
 		}
 	}
 

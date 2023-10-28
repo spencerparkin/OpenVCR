@@ -157,6 +157,7 @@
   <ItemGroup>
     <ClInclude Include="CameraVideoSource.h" />
     <ClInclude Include="Common.h" />
+    <ClInclude Include="CropFilter.h" />
     <ClInclude Include="Error.h" />
     <ClInclude Include="FileVideoDestination.h" />
     <ClInclude Include="FileVideoSource.h" />
@@ -170,6 +171,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CameraVideoSource.cpp" />
+    <ClCompile Include="CropFilter.cpp" />
     <ClCompile Include="Error.cpp" />
     <ClCompile Include="FileVideoDestination.cpp" />
     <ClCompile Include="FileVideoSource.cpp" />

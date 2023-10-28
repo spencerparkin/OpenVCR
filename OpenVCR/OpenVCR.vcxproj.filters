@@ -52,6 +52,9 @@
     <ClInclude Include="FrameFilter.h">
       <Filter>Sources</Filter>
     </ClInclude>
+    <ClInclude Include="CropFilter.h">
+      <Filter>Sources\VideoFilters</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Machine.cpp">
@@ -85,6 +88,9 @@
       <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="RotationFilter.cpp">
+      <Filter>Sources\VideoFilters</Filter>
+    </ClCompile>
+    <ClCompile Include="CropFilter.cpp">
       <Filter>Sources\VideoFilters</Filter>
     </ClCompile>
   </ItemGroup>

@@ -18,6 +18,7 @@ RotationFilter::RotationFilter()
 	cv::Point2f imageCenter(float(inputFrame.data->cols) / 2.0f, float(inputFrame.data->rows) / 2.0f);
 	cv::Mat rotationMatrix = cv::getRotationMatrix2D(imageCenter, this->rotationAngleDegrees, 1.0);
 
+	// TODO: Could we speed things up if the rotation is a multiple of 90 degrees?
 	cv::warpAffine(*inputFrame.data, *outputFrame.data, rotationMatrix, inputFrame.data->size());
 
 	return true;
