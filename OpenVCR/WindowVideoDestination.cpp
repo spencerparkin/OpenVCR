@@ -177,6 +177,12 @@ bool WindowVideoDestination::WindowSizeChanged(Error& error)
     if (newWidth == this->windowWidth && newHeight == this->windowHeight)
         return true;
 
+    if (newWidth == 0 || newHeight == 0)
+    {
+        error.Add(std::format("Ignoring degenerate size: {} x {}", newWidth, newHeight));
+        return false;
+    }
+
     this->windowWidth = newWidth;
     this->windowHeight = newHeight;
 
