@@ -74,11 +74,6 @@ HWND WindowVideoDestination::GetWindowHandle()
     if (!this->CreateFrameTexture(error))
         return false;
 
-    /*if (cv::ocl::haveOpenCL())        Do we really need this?
-    {
-        *this->openCLContext = cv::directx::ocl::initializeContextFromD3D11Device(this->device);
-    }*/
-
     return true;
 }
 
