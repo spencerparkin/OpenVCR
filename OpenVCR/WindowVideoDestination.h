@@ -2,7 +2,6 @@
 
 #include "VideoDestination.h"
 #include <d3d11.h>
-#include <opencv2/core/ocl.hpp>
 
 namespace OpenVCR
 {
@@ -35,6 +34,5 @@ namespace OpenVCR
 		ID3D11Texture2D* backBufferTexture;
 		ID3D11Texture2D* frameTexture;
 		ID3D11RenderTargetView* renderTargetView;
-		cv::ocl::Context* openCLContext;
 	};
 }

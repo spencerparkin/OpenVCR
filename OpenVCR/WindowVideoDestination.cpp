@@ -18,12 +18,10 @@ WindowVideoDestination::WindowVideoDestination()
     this->backBufferTexture = nullptr;
     this->frameTexture = nullptr;
     this->renderTargetView = nullptr;
-    this->openCLContext = new cv::ocl::Context();
 }
 
 /*virtual*/ WindowVideoDestination::~WindowVideoDestination()
 {
-    delete this->openCLContext;
 }
 
 void WindowVideoDestination::SetWindowHandle(HWND windowHandle)
