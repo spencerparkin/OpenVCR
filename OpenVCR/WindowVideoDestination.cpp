@@ -18,6 +18,7 @@ WindowVideoDestination::WindowVideoDestination()
     this->backBufferTexture = nullptr;
     this->frameTexture = nullptr;
     this->renderTargetView = nullptr;
+    this->renderMode = RenderMode::MAINTAIN_ASPECT_RATIO;
 }
 
 /*virtual*/ WindowVideoDestination::~WindowVideoDestination()
@@ -32,6 +33,16 @@ void WindowVideoDestination::SetWindowHandle(HWND windowHandle)
 HWND WindowVideoDestination::GetWindowHandle()
 {
 	return this->windowHandle;
+}
+
+void WindowVideoDestination::SetRenderMode(RenderMode renderMode)
+{
+    this->renderMode = renderMode;
+}
+
+WindowVideoDestination::RenderMode WindowVideoDestination::GetRenderMode()
+{
+    return this->renderMode;
 }
 
 /*virtual*/ bool WindowVideoDestination::PowerOn(Machine* machine, Error& error)
@@ -252,8 +263,7 @@ bool WindowVideoDestination::CreateFrameTexture(Error& error)
 
     // Now do the copy and unmap.
     cv::Mat mappedTexture(this->windowHeight, this->windowWidth, CV_8UC4, mappedTextureResource.pData, mappedTextureResource.RowPitch);
-    // TODO: Offer a different mode where we just blit a centered sub/sup-region so that no up or down-sampling occurs.
-    cv::resize(frameRGBA, mappedTexture, mappedTexture.size());
+    this->RenderFrameIntoTexture(frameRGBA, mappedTexture);
     this->deviceContext->Unmap(this->frameTexture, subResource);
 
     // Lastly, just blit the frame texture into the back-buffer and present.
@@ -266,4 +276,55 @@ bool WindowVideoDestination::CreateFrameTexture(Error& error)
     }
 
 	return true;
+}
+
+void WindowVideoDestination::RenderFrameIntoTexture(cv::Mat& frame, cv::Mat& texture)
+{
+    switch (this->renderMode)
+    {
+        case RenderMode::STRETCH:
+        {
+            cv::resize(frame, texture, texture.size());
+            break;
+        }
+        case RenderMode::MAINTAIN_ASPECT_RATIO:
+        {
+            // Find a sub-rectangle of the frame that is centered and as large as possible and having the same aspect ratio as the texture.
+
+            cv::Point2i upperLeftCorner;
+            cv::Point2i lowerRightCorner;
+
+            double desiredAspectRatio = double(texture.size().width) / double(texture.size().height);
+            double frameAspectRatio = double(frame.size().width) / double(frame.size().height);
+
+            if (frameAspectRatio > desiredAspectRatio)
+            {
+                int delta = (int)::floor(0.5 * (double(frame.size().width) - double(texture.size().width * frame.size().height) / double(texture.size().height)));
+                upperLeftCorner.x = delta;
+                upperLeftCorner.y = 0;
+                lowerRightCorner.x = frame.size().width - delta;
+                lowerRightCorner.y = frame.size().height;
+            }
+            else if (frameAspectRatio < desiredAspectRatio)
+            {
+                int delta = (int)::floor(0.5 * (double(frame.size().height) - double(texture.size().height * frame.size().width) / double(texture.size().width)));
+                upperLeftCorner.x = 0;
+                upperLeftCorner.y = delta;
+                lowerRightCorner.x = frame.size().width;
+                lowerRightCorner.y = frame.size().height - delta;
+            }
+            else
+            {
+                upperLeftCorner.x = 0;
+                upperLeftCorner.y = 0;
+                lowerRightCorner.x = frame.size().width;
+                lowerRightCorner.y = frame.size().height;
+            }
+
+            cv::Mat subFrame = frame(cv::Rect(upperLeftCorner, lowerRightCorner));
+            cv::resize(subFrame, texture, texture.size());
+
+            break;
+        }
+    }
 }

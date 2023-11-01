@@ -14,6 +14,15 @@ namespace OpenVCR
 		void SetWindowHandle(HWND windowHandle);
 		HWND GetWindowHandle();
 
+		enum class RenderMode
+		{
+			STRETCH,
+			MAINTAIN_ASPECT_RATIO
+		};
+
+		void SetRenderMode(RenderMode renderMode);
+		RenderMode GetRenderMode();
+
 		virtual bool PowerOn(Machine* machine, Error& error) override;
 		virtual bool PowerOff(Error& error) override;
 		virtual bool AddFrame(Frame& frame, Error& error) override;
@@ -24,10 +33,12 @@ namespace OpenVCR
 	private:
 		bool CreateFrameTexture(Error& error);
 		bool SetupRenderTargetViewAndViewport(Error& error);
+		void RenderFrameIntoTexture(cv::Mat& frame, cv::Mat& texture);
 
 		HWND windowHandle;
 		int windowWidth;
 		int windowHeight;
+		RenderMode renderMode;
 		ID3D11Device* device;
 		IDXGISwapChain* swapChain;
 		ID3D11DeviceContext* deviceContext;
