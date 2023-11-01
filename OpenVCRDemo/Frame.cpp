@@ -72,6 +72,7 @@ Frame::Frame() : wxFrame(nullptr, wxID_ANY, "OpenVCR Demo", wxDefaultPosition, w
 	this->Bind(EVT_THREAD_STATUS, &Frame::OnThreadStatus, this);
 	this->Bind(EVT_THREAD_ERROR, &Frame::OnThreadError, this);
 	this->Bind(wxEVT_SCROLL_THUMBTRACK, &Frame::OnSliderChanged, this);
+	this->Bind(wxEVT_SIZE, &Frame::OnResize, this);
 
 	this->slider = new wxSlider(this, wxID_ANY, 0, 0, 2048, wxDefaultPosition, wxSize(1024, -1));	// TODO: How do I just make it take up the full width?
 
@@ -354,6 +355,14 @@ void Frame::OnAddVideoDestination(wxCommandEvent& event)
 
 	if (error.GetCount() > 0)
 		wxMessageBox(error.GetErrorMessage().c_str(), "Error", wxOK | wxICON_ERROR, this);
+}
+
+void Frame::OnResize(wxSizeEvent& event)
+{
+	if (this->thread)
+		this->thread->windowSizeChanged = true;
+
+	wxFrame::OnSize(event);
 }
 
 void Frame::OnExit(wxCommandEvent& event)

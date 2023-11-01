@@ -19,7 +19,13 @@ namespace OpenVCR
 		virtual bool PowerOff(Error& error) override;
 		virtual bool AddFrame(Frame& frame, Error& error) override;
 
+		// Call this when the window size changes to update the swap-chain and backbuffer, etc.
+		bool WindowSizeChanged(Error& error);
+
 	private:
+		bool CreateFrameTexture(Error& error);
+		bool SetupRenderTargetViewAndViewport(Error& error);
+
 		HWND windowHandle;
 		int windowWidth;
 		int windowHeight;

@@ -1,5 +1,6 @@
 #include "Thread.h"
 #include "Application.h"
+#include "WindowVideoDestination.h"
 #include "Error.h"
 
 wxDEFINE_EVENT(EVT_THREAD_ERROR, ThreadErrorEvent);
@@ -29,6 +30,7 @@ Thread::Thread(wxEvtHandler* eventHandler) : wxThread(wxTHREAD_JOINABLE)
 {
 	this->eventHandler = eventHandler;
 	this->exitSignaled = false;
+	this->windowSizeChanged = false;
 }
 
 /*virtual*/ Thread::~Thread()
@@ -61,6 +63,22 @@ Thread::Thread(wxEvtHandler* eventHandler) : wxThread(wxTHREAD_JOINABLE)
 				std::string statusMsg;
 				machine.GetStatus(statusMsg);
 				::wxQueueEvent(this->eventHandler, new ThreadStatusEvent(statusMsg));
+			}
+
+			if (this->windowSizeChanged)
+			{
+				for (int j = 0; j < machine.GetNumVideoDestination(); j++)
+				{
+					OpenVCR::VideoDestination* videoDestination = machine.GetVideoDestination(j);
+					OpenVCR::WindowVideoDestination* windowVideoDestination = dynamic_cast<OpenVCR::WindowVideoDestination*>(videoDestination);
+					if (windowVideoDestination)
+					{
+						if (!windowVideoDestination->WindowSizeChanged(error))
+							::wxQueueEvent(this->eventHandler, new ThreadErrorEvent(error.GetErrorMessage()));
+					}
+				}
+
+				this->windowSizeChanged = false;
 			}
 
 			if (!machine.Tick(error))

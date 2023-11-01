@@ -35,5 +35,6 @@ public:
 	virtual ExitCode Entry() override;
 
 	bool exitSignaled;
+	bool windowSizeChanged;
 	wxEvtHandler* eventHandler;
 };

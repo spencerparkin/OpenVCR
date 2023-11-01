@@ -42,6 +42,7 @@ public:
 	void OnThreadError(ThreadErrorEvent& event);
 	void OnThreadStatus(ThreadStatusEvent& event);
 	void OnSliderChanged(wxScrollEvent& event);
+	void OnResize(wxSizeEvent& event);
 
 	void StartThread();
 	void StopThread();
