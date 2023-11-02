@@ -90,6 +90,12 @@ bool Machine::PowerOff(Error& error)
 
 bool Machine::Tick(Error& error)
 {
+	if (!this->isPoweredOn)
+	{
+		error.Add("Machine can't be ticked if it isn't on.");
+		return false;
+	}
+
 	if (!this->videoSource)
 	{
 		error.Add("No frame source configured!");
