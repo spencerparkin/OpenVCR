@@ -14,21 +14,18 @@
     <Filter Include="Sources\VideoFilters">
       <UniqueIdentifier>{443a7681-bea1-4aac-bec0-0de59af4eb86}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\AudioSources">
+      <UniqueIdentifier>{cc232492-4db9-41e5-97d6-7184242c3e2a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\AudioDestinations">
+      <UniqueIdentifier>{65d70af5-95ea-41a3-8c4e-92f14fe9d619}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Machine.h">
       <Filter>Sources</Filter>
     </ClInclude>
     <ClInclude Include="Common.h">
-      <Filter>Sources</Filter>
-    </ClInclude>
-    <ClInclude Include="VideoSource.h">
-      <Filter>Sources</Filter>
-    </ClInclude>
-    <ClInclude Include="VideoDestination.h">
-      <Filter>Sources</Filter>
-    </ClInclude>
-    <ClInclude Include="Frame.h">
       <Filter>Sources</Filter>
     </ClInclude>
     <ClInclude Include="FileVideoSource.h">
@@ -49,24 +46,15 @@
     <ClInclude Include="RotationFilter.h">
       <Filter>Sources\VideoFilters</Filter>
     </ClInclude>
-    <ClInclude Include="FrameFilter.h">
-      <Filter>Sources</Filter>
-    </ClInclude>
     <ClInclude Include="CropFilter.h">
       <Filter>Sources\VideoFilters</Filter>
+    </ClInclude>
+    <ClInclude Include="IODevice.h">
+      <Filter>Sources</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Machine.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="Frame.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="VideoDestination.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="VideoSource.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="FileVideoSource.cpp">
@@ -84,14 +72,14 @@
     <ClCompile Include="FileVideoDestination.cpp">
       <Filter>Sources\VideoDestinations</Filter>
     </ClCompile>
-    <ClCompile Include="FrameFilter.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
     <ClCompile Include="RotationFilter.cpp">
       <Filter>Sources\VideoFilters</Filter>
     </ClCompile>
     <ClCompile Include="CropFilter.cpp">
       <Filter>Sources\VideoFilters</Filter>
+    </ClCompile>
+    <ClCompile Include="IODevice.cpp">
+      <Filter>Sources</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

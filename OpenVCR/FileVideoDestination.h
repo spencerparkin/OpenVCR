@@ -1,19 +1,23 @@
 #pragma once
 
-#include "VideoDestination.h"
+#include "IODevice.h"
 #include <opencv2/videoio.hpp>
 
 namespace OpenVCR
 {
-	class OPEN_VCR_API FileVideoDestination : public VideoDestination
+	class OPEN_VCR_API FileVideoDestination : public IODevice
 	{
 	public:
 		FileVideoDestination();
 		virtual ~FileVideoDestination();
 
 		virtual bool PowerOn(Machine* machine, Error& error) override;
-		virtual bool PowerOff(Error& error) override;
-		virtual bool AddFrame(Frame& frame, Error& error) override;
+		virtual bool PowerOff(Machine* machine, Error& error) override;
+		virtual bool MoveData(Machine* machine, bool& moved, Error& error) override;
+		virtual int GetSortKey() const override;
+
+		void SetSourceName(const std::string& givenName) { *this->sourceName = givenName; }
+		const std::string& GetSourceName() const { return *this->sourceName; }
 
 		void SetVideoFilePath(const std::string& videoFilePath);
 		const std::string& GetVideoFilePath() const;
@@ -29,5 +33,6 @@ namespace OpenVCR
 		int encoderFourCC;
 		cv::Size* frameSize;
 		bool suspendFrameWrites;
+		std::string* sourceName;
 	};
 }

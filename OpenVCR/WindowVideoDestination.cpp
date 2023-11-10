@@ -1,6 +1,6 @@
 #include "WindowVideoDestination.h"
+#include "Machine.h"
 #include "Error.h"
-#include "Frame.h"
 #include <opencv2/core/directx.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
@@ -19,10 +19,12 @@ WindowVideoDestination::WindowVideoDestination()
     this->frameTexture = nullptr;
     this->renderTargetView = nullptr;
     this->renderMode = RenderMode::MAINTAIN_ASPECT_RATIO;
+    this->sourceName = new std::string();
 }
 
 /*virtual*/ WindowVideoDestination::~WindowVideoDestination()
 {
+    delete this->sourceName;
 }
 
 void WindowVideoDestination::SetWindowHandle(HWND windowHandle)
@@ -88,7 +90,7 @@ WindowVideoDestination::RenderMode WindowVideoDestination::GetRenderMode()
     return true;
 }
 
-/*virtual*/ bool WindowVideoDestination::PowerOff(Error& error)
+/*virtual*/ bool WindowVideoDestination::PowerOff(Machine* machine, Error& error)
 {
     if (this->frameTexture)
     {
@@ -251,11 +253,25 @@ bool WindowVideoDestination::CreateFrameTexture(Error& error)
     return true;
 }
 
-/*virtual*/ bool WindowVideoDestination::AddFrame(Frame& frame, Error& error)
+/*virtual*/ bool WindowVideoDestination::MoveData(Machine* machine, bool& moved, Error& error)
 {
-    // We need the frame in a format where we can copy it directly into the direct-X texture resource.
+    moved = false;
+
+    IODevice* ioDevice = machine->FindIODevice<IODevice>(*this->sourceName);
+    if (!ioDevice)
+    {
+        error.Add(std::format("Window video destination failed to find IO device with name \"{}\".", this->sourceName->c_str()));
+        return false;
+    }
+
+    // Is our source frame ready yet?
+    cv::Mat* sourceFrame = ioDevice->GetFrameData();
+    if (!sourceFrame)
+        return true;
+
+    // Yes.  We need the frame in a format where we can copy it directly into the direct-X texture resource.
     cv::Mat frameRGBA;
-    cv::cvtColor(*frame.data, frameRGBA, cv::COLOR_BGR2RGBA);
+    cv::cvtColor(*sourceFrame, frameRGBA, cv::COLOR_BGR2RGBA);
 
     // Map the dirct-X texture into memory.
     UINT subResource = ::D3D11CalcSubresource(0, 0, 1);
@@ -281,6 +297,7 @@ bool WindowVideoDestination::CreateFrameTexture(Error& error)
         return false;
     }
 
+    moved = true;
 	return true;
 }
 

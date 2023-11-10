@@ -1,19 +1,23 @@
 #include "FileVideoSource.h"
 #include "Error.h"
-#include "Frame.h"
+#include "Machine.h"
 
 using namespace OpenVCR;
 
 FileVideoSource::FileVideoSource()
 {
 	this->videoFilePath = new std::string();
+	this->videoCapture = new cv::VideoCapture();
+	this->frame = new cv::Mat();
 	this->frameCount = 0;
+	this->frameReady = false;
 }
 
 /*virtual*/ FileVideoSource::~FileVideoSource()
 {
 	delete this->videoFilePath;
 	delete this->videoCapture;
+	delete this->frame;
 }
 
 void FileVideoSource::SetVideoFilePath(const std::string& videoFilePath)
@@ -26,7 +30,7 @@ const std::string& FileVideoSource::GetVideoFilePath()
 	return *this->videoFilePath;
 }
 
-/*virtual*/ bool FileVideoSource::PowerOn(Error& error)
+/*virtual*/ bool FileVideoSource::PowerOn(Machine* machine, Error& error)
 {
 	// TODO: We should be more configurable here so that the user can indicate which decoding to use, etc.
 	this->videoCapture = new cv::VideoCapture(*this->videoFilePath, cv::VideoCaptureAPIs::CAP_FFMPEG);
@@ -47,7 +51,7 @@ const std::string& FileVideoSource::GetVideoFilePath()
 	return true;
 }
 
-/*virtual*/ bool FileVideoSource::PowerOff(Error& error)
+/*virtual*/ bool FileVideoSource::PowerOff(Machine* machine, Error& error)
 {
 	if (this->videoCapture)
 	{
@@ -59,49 +63,108 @@ const std::string& FileVideoSource::GetVideoFilePath()
 	return true;
 }
 
-/*virtual*/ bool FileVideoSource::GetFrameCount(long& frameCount, Error& error)
+/*virtual*/ bool FileVideoSource::PreTick(Machine* machine, Error& error)
 {
-	frameCount = this->frameCount;
+	this->frameReady = false;
 	return true;
 }
 
-/*virtual*/ bool FileVideoSource::GetFrame(Frame& frame, long i, Error& error)
+/*virtual*/ cv::Mat* FileVideoSource::GetFrameData()
 {
+	if (this->frameReady)
+		return this->frame;
+
+	return nullptr;
+}
+
+/*virtual*/ bool FileVideoSource::MoveData(Machine* machine, bool& moved, Error& error)
+{
+	moved = false;
+
 	if (!this->videoCapture || !this->videoCapture->isOpened())
 	{
-		error.Add("Can't get frame if video capture is not open.");
+		error.Add("Video capture not setup!");
 		return false;
 	}
 
-	if (i < 0 || i >= this->frameCount)
+	long position = -1;
+	switch (machine->GetDisposition(position))
 	{
-		error.Add("Given frame position out of bounds.");
-		return false;
-	}
+		case Machine::Disposition::PULL:
+		{
+			if (!this->videoCapture->read(*this->frame))
+			{
+				error.Add("Read method on video capture device failed.");
+				return false;
+			}
 
-	double propertyValue = double(i);		// TODO: Stack overflow says we need to use i-1.  Confirm?
-	if (!this->videoCapture->set(cv::CAP_PROP_POS_FRAMES, propertyValue))
-	{
-		error.Add("Video capture backend does not support setting the frame position.");
-		return false;
-	}
+			moved = true;
+			this->frameReady = true;
+			break;
+		}
+		case Machine::Disposition::PLACE:
+		{
+			if (position < 0 || position >= this->frameCount)
+			{
+				error.Add("Given frame position out of bounds.");
+				return false;
+			}
 
-	if (!this->videoCapture->grab())
-	{
-		error.Add("Grab failed.  Maybe device is at end of video?");
-		return false;
-	}
+			double propertyValue = double(position);
+			if (!this->videoCapture->set(cv::CAP_PROP_POS_FRAMES, propertyValue))
+			{
+				error.Add("Video capture backend does not support setting the frame position.");
+				return false;
+			}
 
-	if (!this->videoCapture->retrieve(*frame.data))
-	{
-		error.Add("Retrieve call failed.");
-		return false;
+			if (!this->videoCapture->grab())
+			{
+				error.Add("Grab failed.  Maybe device is at end of video?");
+				return false;
+			}
+
+			if (!this->videoCapture->retrieve(*this->frame))
+			{
+				error.Add("Retrieve call failed.");
+				return false;
+			}
+
+			moved = true;
+			this->frameReady = true;
+			break;
+		}
 	}
 
 	return true;
 }
 
-/*virtual*/ bool FileVideoSource::GetFrameNumber(long& frameNumber, Error& error)
+/*virtual*/ bool FileVideoSource::GetFrameSize(cv::Size& frameSize, Error& error)
+{
+	if (!this->videoCapture)
+	{
+		error.Add("Can't return size if capture device not setup.");
+		return false;
+	}
+
+	frameSize.width = (int)videoCapture->get(cv::CAP_PROP_FRAME_WIDTH);
+	frameSize.height = (int)videoCapture->get(cv::CAP_PROP_FRAME_HEIGHT);
+
+	return true;
+}
+
+/*virtual*/ bool FileVideoSource::GetFrameRate(double& frameRate, Error& error)
+{
+	if (!this->videoCapture)
+	{
+		error.Add("Can't return frame-rate if capture device not setup.");
+		return false;
+	}
+
+	frameRate = this->videoCapture->get(cv::CAP_PROP_FPS);
+	return true;
+}
+
+bool FileVideoSource::GetCurrentFrameNumber(long& frameNumber, Error& error)
 {
 	double propertyValue = 0.0;
 	propertyValue = this->videoCapture->get(cv::CAP_PROP_POS_FRAMES);
@@ -112,22 +175,5 @@ const std::string& FileVideoSource::GetVideoFilePath()
 	}
 
 	frameNumber = (long)propertyValue;
-	return true;
-}
-
-/*virtual*/ bool FileVideoSource::GetNextFrame(Frame& frame, Error& error)
-{
-	if (!this->videoCapture)
-	{
-		error.Add("Can't get next frame if video capture is not setup.");
-		return false;
-	}
-
-	if (!this->videoCapture->read(*frame.data))
-	{
-		error.Add("Read method on video capture device failed.");
-		return false;
-	}
-
 	return true;
 }

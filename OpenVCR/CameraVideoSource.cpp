@@ -1,6 +1,6 @@
 #include "CameraVideoSource.h"
 #include "Error.h"
-#include "Frame.h"
+#include "Machine.h"
 
 using namespace OpenVCR;
 
@@ -8,15 +8,20 @@ CameraVideoSource::CameraVideoSource()
 {
 	this->deviceNumber = 0;
 	this->cameraURL = new std::string();
+	this->videoCapture = new cv::VideoCapture();
+	this->frame = new cv::Mat();
 	this->frameNumber = 0;
+	this->frameReady = false;
 }
 
 /*virtual*/ CameraVideoSource::~CameraVideoSource()
 {
 	delete this->cameraURL;
+	delete this->videoCapture;
+	delete this->frame;
 }
 
-/*virtual*/ bool CameraVideoSource::PowerOn(Error& error)
+/*virtual*/ bool CameraVideoSource::PowerOn(Machine* machine, Error& error)
 {
 	if (this->videoCapture)
 	{
@@ -37,10 +42,11 @@ CameraVideoSource::CameraVideoSource()
 		return false;
 	}
 
+	this->frameNumber = 0;
 	return true;
 }
 
-/*virtual*/ bool CameraVideoSource::PowerOff(Error& error)
+/*virtual*/ bool CameraVideoSource::PowerOff(Machine* machine, Error& error)
 {
 	if (this->videoCapture)
 	{
@@ -49,43 +55,89 @@ CameraVideoSource::CameraVideoSource()
 		this->videoCapture = nullptr;
 	}
 
+	this->frameNumber = 0;
 	return true;
 }
 
-/*virtual*/ bool CameraVideoSource::GetFrameCount(long& frameCount, Error& error)
+/*virtual*/ bool CameraVideoSource::PreTick(Machine* machine, Error& error)
 {
-	error.Add("No frame-count for a live feed.");
-	return false;
-}
-
-/*virtual*/ bool CameraVideoSource::GetFrameNumber(long& frameNumber, Error& error)
-{
-	frameNumber = this->frameNumber;
+	this->frameReady = false;
 	return true;
 }
 
-/*virtual*/ bool CameraVideoSource::GetFrame(Frame& frame, long i, Error& error)
+/*virtual*/ bool CameraVideoSource::MoveData(Machine* machine, bool& moved, Error& error)
 {
-	error.Add("Can't get specific frame for a live feed.");
-	return false;
+	moved = false;
+
+	if (!this->videoCapture || !this->videoCapture->isOpened())
+	{
+		error.Add("Video capture device not yet setup.");
+		return false;
+	}
+
+	long position = -1;
+	switch (machine->GetDisposition(position))
+	{
+		case Machine::Disposition::PULL:
+		{
+			if (!this->videoCapture->read(*this->frame))
+			{
+				error.Add("Failed to read from video capture device.");
+				return false;
+			}
+
+			this->frameNumber++;
+			this->frameReady = true;
+			moved = true;
+			break;
+		}
+		case Machine::Disposition::PLACE:
+		{
+			error.Add("Can't place a live feed at a given position.");
+			return false;
+		}
+	}
+
+	return true;
 }
 
-/*virtual*/ bool CameraVideoSource::GetNextFrame(Frame& frame, Error& error)
+/*virtual*/ cv::Mat* CameraVideoSource::GetFrameData()
+{
+	if (this->frameReady)
+		return this->frame;
+
+	return nullptr;
+}
+
+/*virtual*/ bool CameraVideoSource::GetFrameSize(cv::Size& frameSize, Error& error)
 {
 	if (!this->videoCapture)
 	{
-		error.Add("Video capture device not yet created.");
+		error.Add("Can't return size if capture device not setup.");
 		return false;
 	}
 
-	if (!this->videoCapture->read(*frame.data))
-	{
-		error.Add("Failed to read from video capture device.");
-		return false;
-	}
+	frameSize.width = (int)videoCapture->get(cv::CAP_PROP_FRAME_WIDTH);
+	frameSize.height = (int)videoCapture->get(cv::CAP_PROP_FRAME_HEIGHT);
 
-	this->frameNumber++;
 	return true;
+}
+
+/*virtual*/ bool CameraVideoSource::GetFrameRate(double& frameRate, Error& error)
+{
+	if (!this->videoCapture)
+	{
+		error.Add("Can't return frame-rate if capture device not setup.");
+		return false;
+	}
+
+	frameRate = this->videoCapture->get(cv::CAP_PROP_FPS);
+	return true;
+}
+
+long CameraVideoSource::GetFrameNumber()
+{
+	return this->frameNumber;
 }
 
 void CameraVideoSource::SetCameraURL(const std::string& cameraURL)
