@@ -60,7 +60,7 @@ namespace OpenVCR
 				IODevice* ioDevice = pair.second;
 				IODeviceType* ioDeviceType = dynamic_cast<IODeviceType*>(ioDevice);
 				if (ioDeviceType)
-					ioDeviceArray.push_back(ioDevice);
+					ioDeviceArray.push_back(ioDeviceType);
 			}
 
 			return ioDeviceArray.size() > 0;
