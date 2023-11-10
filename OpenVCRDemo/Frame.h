@@ -15,13 +15,6 @@ public:
 
 	enum
 	{
-		ID_SetFileVideoSource = wxID_HIGHEST,
-		ID_SetCameraVideoSource,
-		ID_AddFileVideoDestination,
-		ID_AddWindowVideoDestination,
-		ID_AddRotationFilter,
-		ID_AddCropFilter,
-		ID_ClearAllFilters,
 		ID_PowerOnMachine,
 		ID_PowerOffMachine,
 		ID_About,
@@ -29,10 +22,6 @@ public:
 	};
 
 	void OnPowerMachine(wxCommandEvent& event);
-	void OnSetVideoSource(wxCommandEvent& event);
-	void OnAddVideoDestination(wxCommandEvent& event);
-	void OnAddFrameFilter(wxCommandEvent& event);
-	void OnClearAllFilters(wxCommandEvent& event);
 	void OnExit(wxCommandEvent& event);
 	void OnAbout(wxCommandEvent& event);
 	void OnUpdateUI(wxUpdateUIEvent& event);

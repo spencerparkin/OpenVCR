@@ -52,6 +52,20 @@ namespace OpenVCR
 			return dynamic_cast<IODeviceType*>(iter->second);
 		}
 
+		template<typename IODeviceType>
+		bool FindAllIODevices(std::vector<IODeviceType*>& ioDeviceArray)
+		{
+			for (auto pair : *this->ioDeviceMap)
+			{
+				IODevice* ioDevice = pair.second;
+				IODeviceType* ioDeviceType = dynamic_cast<IODeviceType*>(ioDevice);
+				if (ioDeviceType)
+					ioDeviceArray.push_back(ioDevice);
+			}
+
+			return ioDeviceArray.size() > 0;
+		}
+
 		bool DeleteAllIODevices(Error& error);
 
 		void GetStatus(std::string& statusMsg);
