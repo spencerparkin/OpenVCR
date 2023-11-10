@@ -5,6 +5,8 @@
 #include <CameraVideoSource.h>
 #include <FileVideoDestination.h>
 #include <WindowVideoDestination.h>
+#include <FileAudioSource.h>
+#include <SpeakerAudioDestination.h>
 #include <RotationFilter.h>
 #include <CropFilter.h>
 #include <Error.h>
@@ -28,6 +30,9 @@ Frame::Frame() : wxFrame(nullptr, wxID_ANY, "OpenVCR Demo", wxDefaultPosition, w
 	fileMenu->Append(new wxMenuItem(fileMenu, ID_SetupToCaptureVideo, "Setup to Capture Video"));
 	fileMenu->Append(new wxMenuItem(fileMenu, ID_SetupToReplayVideo, "Setup to Replay Video"));
 	fileMenu->AppendSeparator();
+	fileMenu->Append(new wxMenuItem(fileMenu, ID_SetupToCaptureAudio, "Setup to Capture Audio"));
+	fileMenu->Append(new wxMenuItem(fileMenu, ID_SetupToReplayAudio, "Setup to Replay Audio"));
+	fileMenu->AppendSeparator();
 	fileMenu->Append(new wxMenuItem(fileMenu, ID_Exit, "Exit"));
 
 	wxMenu* helpMenu = new wxMenu();
@@ -42,6 +47,8 @@ Frame::Frame() : wxFrame(nullptr, wxID_ANY, "OpenVCR Demo", wxDefaultPosition, w
 
 	this->Bind(wxEVT_MENU, &Frame::OnSetupMachine, this, ID_SetupToCaptureVideo);
 	this->Bind(wxEVT_MENU, &Frame::OnSetupMachine, this, ID_SetupToReplayVideo);
+	this->Bind(wxEVT_MENU, &Frame::OnSetupMachine, this, ID_SetupToReplayAudio);
+	this->Bind(wxEVT_MENU, &Frame::OnSetupMachine, this, ID_SetupToReplayAudio);
 	this->Bind(wxEVT_MENU, &Frame::OnPowerMachine, this, ID_PowerOnMachine);
 	this->Bind(wxEVT_MENU, &Frame::OnPowerMachine, this, ID_PowerOffMachine);
 	this->Bind(wxEVT_MENU, &Frame::OnAbout, this, ID_About);
@@ -50,6 +57,8 @@ Frame::Frame() : wxFrame(nullptr, wxID_ANY, "OpenVCR Demo", wxDefaultPosition, w
 	this->Bind(wxEVT_UPDATE_UI, &Frame::OnUpdateUI, this, ID_PowerOffMachine);
 	this->Bind(wxEVT_UPDATE_UI, &Frame::OnUpdateUI, this, ID_SetupToCaptureVideo);
 	this->Bind(wxEVT_UPDATE_UI, &Frame::OnUpdateUI, this, ID_SetupToReplayVideo);
+	this->Bind(wxEVT_UPDATE_UI, &Frame::OnUpdateUI, this, ID_SetupToCaptureAudio);
+	this->Bind(wxEVT_UPDATE_UI, &Frame::OnUpdateUI, this, ID_SetupToReplayAudio);
 	this->Bind(wxEVT_CLOSE_WINDOW, &Frame::OnClose, this);
 	this->Bind(EVT_THREAD_ENTERING, &Frame::OnThreadEntering, this);
 	this->Bind(EVT_THREAD_EXITING, &Frame::OnThreadExiting, this);
@@ -140,7 +149,7 @@ void Frame::OnSetupMachine(wxCommandEvent& event)
 			auto windowVideoDestination = wxGetApp().machine.AddIODevice<OpenVCR::WindowVideoDestination>("window_destination", error);
 			if (!windowVideoDestination)
 			{
-				wxMessageBox(wxString::Format("Failed to window video destination: %s", error.GetErrorMessage().c_str()), "Error", wxOK | wxICON_ERROR, this);
+				wxMessageBox(wxString::Format("Failed to create window video destination: %s", error.GetErrorMessage().c_str()), "Error", wxOK | wxICON_ERROR, this);
 				return;
 			}
 
@@ -156,6 +165,34 @@ void Frame::OnSetupMachine(wxCommandEvent& event)
 
 			break;
 		}
+		case ID_SetupToReplayAudio:
+		{
+			wxFileDialog openFileDialog(this, "Choose audio wave file.", "", "", "Any File (*.wav)|*.wav", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+			if (wxID_OK != openFileDialog.ShowModal())
+				return;
+
+			wxGetApp().machine.DeleteAllIODevices(error);
+
+			auto fileAudioSource = wxGetApp().machine.AddIODevice<OpenVCR::FileAudioSource>("audio_source", error);
+			if (!fileAudioSource)
+			{
+				wxMessageBox(wxString::Format("Failed to create audio source: %s", error.GetErrorMessage().c_str()), "Error", wxOK | wxICON_ERROR, this);
+				return;
+			}
+
+			fileAudioSource->SetAudioFilePath((const char*)openFileDialog.GetPath().c_str());
+
+			auto speakerAudioDestination = wxGetApp().machine.AddIODevice<OpenVCR::SpeakAudioDestination>("audio_destination", error);
+			if (!speakerAudioDestination)
+			{
+				wxMessageBox(wxString::Format("Failed to create speaker audio destination: %s", error.GetErrorMessage().c_str()), "Error", wxOK | wxICON_ERROR, this);
+				return;
+			}
+
+			speakerAudioDestination->SetSourceName(fileAudioSource->GetName());
+
+			break;
+		}
 	}
 }
 
@@ -166,6 +203,8 @@ void Frame::OnUpdateUI(wxUpdateUIEvent& event)
 		case ID_PowerOnMachine:
 		case ID_SetupToCaptureVideo:
 		case ID_SetupToReplayVideo:
+		case ID_SetupToCaptureAudio:
+		case ID_SetupToReplayAudio:
 		{
 			event.Enable(!wxGetApp().machine.IsOn());
 			break;

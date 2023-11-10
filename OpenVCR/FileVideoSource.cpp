@@ -75,7 +75,7 @@ const std::string& FileVideoSource::GetVideoFilePath()
 		return false;
 	}
 
-	long position = -1;
+	double position = 0.0;
 	switch (machine->GetDisposition(position))
 	{
 		case Machine::Disposition::PULL:
@@ -91,14 +91,15 @@ const std::string& FileVideoSource::GetVideoFilePath()
 		}
 		case Machine::Disposition::PLACE:
 		{
-			if (position < 0 || position >= this->frameCount)
+			long framePosition = (long)::round(position * (this->frameCount - 1));
+
+			if (framePosition < 0 || framePosition >= this->frameCount)
 			{
 				error.Add("Given frame position out of bounds.");
 				return false;
 			}
 
-			double propertyValue = double(position);
-			if (!this->videoCapture->set(cv::CAP_PROP_POS_FRAMES, propertyValue))
+			if (!this->videoCapture->set(cv::CAP_PROP_POS_FRAMES, framePosition))
 			{
 				error.Add("Video capture backend does not support setting the frame position.");
 				return false;

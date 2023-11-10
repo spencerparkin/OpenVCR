@@ -2,6 +2,7 @@
 #include "Error.h"
 #include "IODevice.h"
 #include <opencv2/core/utils/logger.hpp>
+#include <SDL.h>
 
 using namespace OpenVCR;
 
@@ -14,6 +15,26 @@ Machine::Machine()
 /*virtual*/ Machine::~Machine()
 {
 	delete this->ioDeviceMap;
+}
+
+/*static*/ bool Machine::Setup(Error& error)
+{
+	int result = SDL_Init(SDL_INIT_AUDIO);
+	if (result != 0)
+	{
+		error.Add(std::format("Failed to initialize SDL audo subsystem: {}", SDL_GetError()));
+		return false;
+	}
+
+	return true;
+}
+
+/*static*/ bool Machine::Shutdown(Error& error)
+{
+	SDL_QuitSubSystem(SDL_INIT_AUDIO);
+	SDL_Quit();
+
+	return true;
 }
 
 bool Machine::DeleteAllIODevices(Error& error)
@@ -153,8 +174,8 @@ void Machine::GetStatus(std::string& statusMsg)
 	statusMsg = "?";
 }
 
-Machine::Disposition Machine::GetDisposition(long& position)
+Machine::Disposition Machine::GetDisposition(double& position)
 {
-	position = -1;
+	position = 0.0;
 	return Disposition::PULL;
 }

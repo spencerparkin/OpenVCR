@@ -83,14 +83,14 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>C:\OpenCV\build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <AdditionalDependencies>opencv_world480d.lib;%(AdditionalDependencies);d3d11.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\OpenCV\build\x64\vc16\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SDLRoot)\lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -104,7 +104,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>C:\OpenCV\build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -113,7 +113,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <AdditionalDependencies>opencv_world480.lib;%(AdditionalDependencies);d3d11.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\OpenCV\build\x64\vc16\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SDLRoot)\lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -124,15 +124,15 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(OpenCVRoot)\build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(OpenCVRoot)\build\include;$(SDLRoot)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>opencv_world480d.lib;%(AdditionalDependencies);d3d11.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(OpenCVRoot)\build\x64\vc16\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opencv_world480d.lib;%(AdditionalDependencies);d3d11.lib;SDL2.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OpenCVRoot)\build\x64\vc16\lib;$(SDLRoot)\lib\x64</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -145,7 +145,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(OpenCVRoot)\build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(OpenCVRoot)\build\include;$(SDLRoot)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -154,8 +154,8 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>opencv_world480.lib;%(AdditionalDependencies);d3d11.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(OpenCVRoot)\build\x64\vc16\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opencv_world480.lib;%(AdditionalDependencies);d3d11.lib;SDL2.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OpenCVRoot)\build\x64\vc16\lib;$(SDLRoot)\lib\x64</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -164,11 +164,13 @@
     <ClInclude Include="Common.h" />
     <ClInclude Include="CropFilter.h" />
     <ClInclude Include="Error.h" />
+    <ClInclude Include="FileAudioSource.h" />
     <ClInclude Include="FileVideoDestination.h" />
     <ClInclude Include="FileVideoSource.h" />
     <ClInclude Include="IODevice.h" />
     <ClInclude Include="RotationFilter.h" />
     <ClInclude Include="Machine.h" />
+    <ClInclude Include="SpeakerAudioDestination.h" />
     <ClInclude Include="VideoDevice.h" />
     <ClInclude Include="WindowVideoDestination.h" />
   </ItemGroup>
@@ -177,11 +179,13 @@
     <ClCompile Include="CameraVideoSource.cpp" />
     <ClCompile Include="CropFilter.cpp" />
     <ClCompile Include="Error.cpp" />
+    <ClCompile Include="FileAudioSource.cpp" />
     <ClCompile Include="FileVideoDestination.cpp" />
     <ClCompile Include="FileVideoSource.cpp" />
     <ClCompile Include="IODevice.cpp" />
     <ClCompile Include="Machine.cpp" />
     <ClCompile Include="RotationFilter.cpp" />
+    <ClCompile Include="SpeakerAudioDestination.cpp" />
     <ClCompile Include="VideoDevice.cpp" />
     <ClCompile Include="WindowVideoDestination.cpp" />
   </ItemGroup>

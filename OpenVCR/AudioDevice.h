@@ -1,6 +1,7 @@
 #pragma once
 
 #include "IODevice.h"
+#include <SDL.h>
 
 namespace OpenVCR
 {
@@ -10,8 +11,10 @@ namespace OpenVCR
 		AudioDevice(const std::string& givenName);
 		virtual ~AudioDevice();
 
-		virtual void* GetSampleData();
+		virtual Uint8* GetSampleData(Uint32& size);
+		virtual SDL_AudioSpec* GetAudioSpec();
 
 	protected:
+		SDL_AudioSpec audioSpec;
 	};
 }

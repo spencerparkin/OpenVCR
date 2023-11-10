@@ -16,6 +16,9 @@ namespace OpenVCR
 		Machine();
 		virtual ~Machine();
 
+		static bool Setup(Error& error);
+		static bool Shutdown(Error& error);
+
 		bool PowerOn(Error& error);
 		bool PowerOff(Error& error);
 		bool Tick(Error& error);
@@ -71,11 +74,11 @@ namespace OpenVCR
 
 		enum class Disposition
 		{
-			PULL,
+			PULL,		// "Push" might be a more accurate term here.
 			PLACE
 		};
 
-		Disposition GetDisposition(long& position);
+		Disposition GetDisposition(double& position);
 
 	private:
 

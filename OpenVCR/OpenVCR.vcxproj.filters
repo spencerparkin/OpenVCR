@@ -67,6 +67,12 @@
     <ClInclude Include="AudioDevice.h">
       <Filter>Sources</Filter>
     </ClInclude>
+    <ClInclude Include="FileAudioSource.h">
+      <Filter>Sources\AudioSources</Filter>
+    </ClInclude>
+    <ClInclude Include="SpeakerAudioDestination.h">
+      <Filter>Sources\AudioDestinations</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Machine.cpp">
@@ -101,6 +107,12 @@
     </ClCompile>
     <ClCompile Include="VideoDevice.cpp">
       <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="FileAudioSource.cpp">
+      <Filter>Sources\AudioSources</Filter>
+    </ClCompile>
+    <ClCompile Include="SpeakerAudioDestination.cpp">
+      <Filter>Sources\AudioDestinations</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -69,7 +69,7 @@ CameraVideoSource::CameraVideoSource(const std::string& givenName) : VideoDevice
 		return false;
 	}
 
-	long position = -1;
+	double position = 0.0;
 	switch (machine->GetDisposition(position))
 	{
 		case Machine::Disposition::PULL:

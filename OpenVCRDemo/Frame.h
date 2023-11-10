@@ -17,6 +17,8 @@ public:
 	{
 		ID_SetupToCaptureVideo,
 		ID_SetupToReplayVideo,
+		ID_SetupToCaptureAudio,
+		ID_SetupToReplayAudio,
 		ID_PowerOnMachine,
 		ID_PowerOffMachine,
 		ID_About,
