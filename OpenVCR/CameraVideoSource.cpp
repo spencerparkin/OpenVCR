@@ -8,7 +8,7 @@ CameraVideoSource::CameraVideoSource(const std::string& givenName) : VideoDevice
 {
 	this->deviceNumber = 0;
 	this->cameraURL = new std::string();
-	this->videoCapture = new cv::VideoCapture();
+	this->videoCapture = nullptr;
 	this->frameNumber = 0;
 }
 

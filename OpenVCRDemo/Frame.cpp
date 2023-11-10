@@ -123,7 +123,7 @@ void Frame::OnSetupMachine(wxCommandEvent& event)
 			}
 
 			fileVideoDestination->SetVideoFilePath((const char*)saveFileDialog.GetPath());
-			fileVideoDestination->SetSourceName(cameraVideoSource->GetSourceName());
+			fileVideoDestination->SetSourceName(cameraVideoSource->GetName());
 
 			break;
 		}

@@ -127,7 +127,7 @@ bool Machine::Tick(Error& error)
 			deferCount++;
 		}
 
-		if (deferCount == ioDeviceQueue.size())
+		if (deferCount == ioDeviceQueue.size() && deferCount > 0)
 		{
 			error.Add("All IO devices are deferring the movement of data.  Infinite loop detected.");
 			return false;
