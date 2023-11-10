@@ -2,11 +2,13 @@
 
 using namespace OpenVCR;
 
-IODevice::IODevice()
+IODevice::IODevice(const std::string& givenName)
 {
 	this->name = new std::string;
 	this->sourceName = new std::string;
 	this->complete = false;
+
+	this->SetName(givenName);
 }
 
 /*virtual*/ IODevice::~IODevice()

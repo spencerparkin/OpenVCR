@@ -7,7 +7,7 @@
 
 using namespace OpenVCR;
 
-WindowVideoDestination::WindowVideoDestination()
+WindowVideoDestination::WindowVideoDestination(const std::string& givenName) : VideoDevice(givenName)
 {
 	this->windowHandle = nullptr;
     this->windowWidth = 0;
@@ -23,6 +23,11 @@ WindowVideoDestination::WindowVideoDestination()
 
 /*virtual*/ WindowVideoDestination::~WindowVideoDestination()
 {
+}
+
+/*static*/ WindowVideoDestination* WindowVideoDestination::Create(const std::string& name)
+{
+    return new WindowVideoDestination(name);		// Allocate class in this DLL's heap!
 }
 
 void WindowVideoDestination::SetWindowHandle(HWND windowHandle)

@@ -7,8 +7,10 @@ namespace OpenVCR
 	class OPEN_VCR_API CropFilter : public VideoDevice
 	{
 	public:
-		CropFilter();
+		CropFilter(const std::string& givenName);
 		virtual ~CropFilter();
+
+		static CropFilter* Create(const std::string& name);
 
 		virtual bool MoveData(Machine* machine, Error& error) override;
 

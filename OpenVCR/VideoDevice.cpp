@@ -2,7 +2,7 @@
 
 using namespace OpenVCR;
 
-VideoDevice::VideoDevice()
+VideoDevice::VideoDevice(const std::string& givenName) : IODevice(givenName)
 {
 	this->frame = new cv::Mat();
 }

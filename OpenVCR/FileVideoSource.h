@@ -8,8 +8,10 @@ namespace OpenVCR
 	class OPEN_VCR_API FileVideoSource : public VideoDevice
 	{
 	public:
-		FileVideoSource();
+		FileVideoSource(const std::string& givenName);
 		virtual ~FileVideoSource();
+
+		static FileVideoSource* Create(const std::string& name);
 
 		void SetVideoFilePath(const std::string& videoFilePath);
 		const std::string& GetVideoFilePath();

@@ -2,7 +2,7 @@
 
 using namespace OpenVCR;
 
-AudioDevice::AudioDevice()
+AudioDevice::AudioDevice(const std::string& givenName) : IODevice(givenName)
 {
 }
 

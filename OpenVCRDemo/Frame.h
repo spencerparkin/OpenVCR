@@ -15,12 +15,15 @@ public:
 
 	enum
 	{
+		ID_SetupToCaptureVideo,
+		ID_SetupToReplayVideo,
 		ID_PowerOnMachine,
 		ID_PowerOffMachine,
 		ID_About,
 		ID_Exit
 	};
 
+	void OnSetupMachine(wxCommandEvent& event);
 	void OnPowerMachine(wxCommandEvent& event);
 	void OnExit(wxCommandEvent& event);
 	void OnAbout(wxCommandEvent& event);

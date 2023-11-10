@@ -4,13 +4,18 @@
 
 using namespace OpenVCR;
 
-RotationFilter::RotationFilter()
+RotationFilter::RotationFilter(const std::string& givenName) : VideoDevice(givenName)
 {
 	this->rotationAngleDegrees = 45.0;
 }
 
 /*virtual*/ RotationFilter::~RotationFilter()
 {
+}
+
+/*static*/ RotationFilter* RotationFilter::Create(const std::string& name)
+{
+	return new RotationFilter(name);		// Allocate class in this DLL's heap!
 }
 
 /*virtual*/ bool RotationFilter::MoveData(Machine* machine, Error& error)

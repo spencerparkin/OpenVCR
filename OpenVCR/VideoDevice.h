@@ -7,7 +7,7 @@ namespace OpenVCR
 	class OPEN_VCR_API VideoDevice : public IODevice
 	{
 	public:
-		VideoDevice();
+		VideoDevice(const std::string& givenName);
 		virtual ~VideoDevice();
 
 		virtual cv::Mat* GetFrameData();

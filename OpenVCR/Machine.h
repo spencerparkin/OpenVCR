@@ -34,10 +34,10 @@ namespace OpenVCR
 			if (iter != this->ioDeviceMap->end())
 			{
 				error.Add(std::format("An IO device with name \"{}\" already exists.", name.c_str()));
-				return false;
+				return nullptr;
 			}
 
-			IODevice* ioDevice = IODeviceType::Create(name);
+			IODeviceType* ioDevice = IODeviceType::Create(name);
 			this->ioDeviceMap->insert(std::pair<std::string, IODevice*>(name, ioDevice));
 			return ioDevice;
 		}
@@ -57,10 +57,9 @@ namespace OpenVCR
 		{
 			for (auto pair : *this->ioDeviceMap)
 			{
-				IODevice* ioDevice = pair.second;
-				IODeviceType* ioDeviceType = dynamic_cast<IODeviceType*>(ioDevice);
-				if (ioDeviceType)
-					ioDeviceArray.push_back(ioDeviceType);
+				IODeviceType* ioDevice = dynamic_cast<IODeviceType*>(pair.second);
+				if (ioDevice)
+					ioDeviceArray.push_back(ioDevice);
 			}
 
 			return ioDeviceArray.size() > 0;

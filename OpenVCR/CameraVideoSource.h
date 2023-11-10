@@ -8,8 +8,10 @@ namespace OpenVCR
 	class OPEN_VCR_API CameraVideoSource : public VideoDevice
 	{
 	public:
-		CameraVideoSource();
+		CameraVideoSource(const std::string& givenName);
 		virtual ~CameraVideoSource();
+
+		static CameraVideoSource* Create(const std::string& name);
 
 		virtual bool PowerOn(Machine* machine, Error& error) override;
 		virtual bool PowerOff(Machine* machine, Error& error) override;

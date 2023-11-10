@@ -11,7 +11,7 @@ namespace OpenVCR
 	class OPEN_VCR_API IODevice
 	{
 	public:
-		IODevice();
+		IODevice(const std::string& givenName);
 		virtual ~IODevice();
 
 		virtual bool PowerOn(Machine* machine, Error& error);

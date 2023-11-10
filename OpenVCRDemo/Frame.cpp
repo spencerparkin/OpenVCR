@@ -37,12 +37,16 @@ Frame::Frame() : wxFrame(nullptr, wxID_ANY, "OpenVCR Demo", wxDefaultPosition, w
 
 	this->SetStatusBar(new wxStatusBar(this));
 
+	this->Bind(wxEVT_MENU, &Frame::OnSetupMachine, this, ID_SetupToCaptureVideo);
+	this->Bind(wxEVT_MENU, &Frame::OnSetupMachine, this, ID_SetupToReplayVideo);
 	this->Bind(wxEVT_MENU, &Frame::OnPowerMachine, this, ID_PowerOnMachine);
 	this->Bind(wxEVT_MENU, &Frame::OnPowerMachine, this, ID_PowerOffMachine);
 	this->Bind(wxEVT_MENU, &Frame::OnAbout, this, ID_About);
 	this->Bind(wxEVT_MENU, &Frame::OnExit, this, ID_Exit);
 	this->Bind(wxEVT_UPDATE_UI, &Frame::OnUpdateUI, this, ID_PowerOnMachine);
 	this->Bind(wxEVT_UPDATE_UI, &Frame::OnUpdateUI, this, ID_PowerOffMachine);
+	this->Bind(wxEVT_UPDATE_UI, &Frame::OnUpdateUI, this, ID_SetupToCaptureVideo);
+	this->Bind(wxEVT_UPDATE_UI, &Frame::OnUpdateUI, this, ID_SetupToReplayVideo);
 	this->Bind(wxEVT_CLOSE_WINDOW, &Frame::OnClose, this);
 	this->Bind(EVT_THREAD_ENTERING, &Frame::OnThreadEntering, this);
 	this->Bind(EVT_THREAD_EXITING, &Frame::OnThreadExiting, this);
@@ -73,11 +77,62 @@ void Frame::OnClose(wxCloseEvent& event)
 	wxFrame::OnCloseWindow(event);
 }
 
+void Frame::OnSetupMachine(wxCommandEvent& event)
+{
+	OpenVCR::Error error;
+
+	switch (event.GetId())
+	{
+		case ID_SetupToCaptureVideo:
+		{
+			wxTextEntryDialog deviceNumberDialog(this, "Enter camera URL or device number.", "Camera", "0");
+			if (wxID_OK != deviceNumberDialog.ShowModal())
+				return;
+
+			wxFileDialog saveFileDialog(this, "Choose file where video footage will get dumped.", "", "", "Any File (*.*)|*.*", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+			if (wxID_OK != saveFileDialog.ShowModal())
+				return;
+
+			auto cameraVideoSource = wxGetApp().machine.AddIODevice<OpenVCR::CameraVideoSource>("video_source", error);
+			if (!cameraVideoSource)
+			{
+				wxMessageBox(wxString::Format("Failed to create video source: %s", error.GetErrorMessage().c_str()), "Error", wxOK | wxICON_ERROR, this);
+				return;
+			}
+
+			wxString cameraText = deviceNumberDialog.GetValue();
+			long deviceNumber = 0;
+			if (cameraText.ToCLong(&deviceNumber))
+				cameraVideoSource->SetDeviceNumber((int)deviceNumber);
+			else
+				cameraVideoSource->SetCameraURL((const char*)cameraText.c_str());
+			
+			auto fileVideoDestination = wxGetApp().machine.AddIODevice<OpenVCR::FileVideoDestination>("video_destination", error);
+			if (!fileVideoDestination)
+			{
+				wxMessageBox(wxString::Format("Failed to create video destination: %s", error.GetErrorMessage().c_str()), "Error", wxOK | wxICON_ERROR, this);
+				return;
+			}
+
+			fileVideoDestination->SetVideoFilePath((const char*)saveFileDialog.GetPath());
+			fileVideoDestination->SetSourceName(cameraVideoSource->GetSourceName());
+
+			break;
+		}
+		case ID_SetupToReplayVideo:
+		{
+			break;
+		}
+	}
+}
+
 void Frame::OnUpdateUI(wxUpdateUIEvent& event)
 {
 	switch (event.GetId())
 	{
 		case ID_PowerOnMachine:
+		case ID_SetupToCaptureVideo:
+		case ID_SetupToReplayVideo:
 		{
 			event.Enable(!wxGetApp().machine.IsOn());
 			break;

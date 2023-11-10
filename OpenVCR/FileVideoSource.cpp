@@ -4,7 +4,7 @@
 
 using namespace OpenVCR;
 
-FileVideoSource::FileVideoSource()
+FileVideoSource::FileVideoSource(const std::string& givenName) : VideoDevice(givenName)
 {
 	this->videoFilePath = new std::string();
 	this->videoCapture = new cv::VideoCapture();
@@ -17,6 +17,11 @@ FileVideoSource::FileVideoSource()
 	delete this->videoFilePath;
 	delete this->videoCapture;
 	delete this->frame;
+}
+
+/*static*/ FileVideoSource* FileVideoSource::Create(const std::string& name)
+{
+	return new FileVideoSource(name);		// Allocate class in this DLL's heap!
 }
 
 void FileVideoSource::SetVideoFilePath(const std::string& videoFilePath)

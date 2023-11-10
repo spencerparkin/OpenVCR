@@ -8,8 +8,10 @@ namespace OpenVCR
 	class OPEN_VCR_API FileVideoDestination : public VideoDevice
 	{
 	public:
-		FileVideoDestination();
+		FileVideoDestination(const std::string& givenName);
 		virtual ~FileVideoDestination();
+
+		static FileVideoDestination* Create(const std::string& name);
 
 		virtual bool PowerOn(Machine* machine, Error& error) override;
 		virtual bool PowerOff(Machine* machine, Error& error) override;

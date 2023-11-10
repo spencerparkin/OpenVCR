@@ -4,21 +4,24 @@
 
 using namespace OpenVCR;
 
-FileVideoDestination::FileVideoDestination()
+FileVideoDestination::FileVideoDestination(const std::string& givenName) : VideoDevice(givenName)
 {
 	this->videoWriter = nullptr;
 	this->videoFilePath = new std::string();
 	this->frameRateFPS = 30.0;
 	this->encoderFourCC = 0;
 	this->frameSize = new cv::Size(0, 0);
-	this->sourceName = new std::string;
 }
 
 /*virtual*/ FileVideoDestination::~FileVideoDestination()
 {
 	delete this->videoFilePath;
 	delete this->frameSize;
-	delete this->sourceName;
+}
+
+/*static*/ FileVideoDestination* FileVideoDestination::Create(const std::string& name)
+{
+	return new FileVideoDestination(name);		// Allocate class in this DLL's heap!
 }
 
 /*virtual*/ int FileVideoDestination::GetSortKey() const

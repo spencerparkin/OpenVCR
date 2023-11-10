@@ -7,8 +7,10 @@ namespace OpenVCR
 	class OPEN_VCR_API RotationFilter : public VideoDevice
 	{
 	public:
-		RotationFilter();
+		RotationFilter(const std::string& givenName);
 		virtual ~RotationFilter();
+
+		static RotationFilter* Create(const std::string& name);
 
 		virtual bool MoveData(Machine* machine, Error& error) override;
 

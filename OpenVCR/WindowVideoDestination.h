@@ -8,8 +8,10 @@ namespace OpenVCR
 	class OPEN_VCR_API WindowVideoDestination : public VideoDevice
 	{
 	public:
-		WindowVideoDestination();
+		WindowVideoDestination(const std::string& givenName);
 		virtual ~WindowVideoDestination();
+
+		static WindowVideoDestination* Create(const std::string& name);
 
 		void SetWindowHandle(HWND windowHandle);
 		HWND GetWindowHandle();

@@ -5,13 +5,18 @@
 
 using namespace OpenVCR;
 
-CropFilter::CropFilter()
+CropFilter::CropFilter(const std::string& givenName) : VideoDevice(givenName)
 {
 	this->cropParams = CropParams{ 0, 0, 0, 0 };
 }
 
 /*virtual*/ CropFilter::~CropFilter()
 {
+}
+
+/*static*/ CropFilter* CropFilter::Create(const std::string& name)
+{
+	return new CropFilter(name);		// Allocate class in this DLL's heap!
 }
 
 /*virtual*/ bool CropFilter::MoveData(Machine* machine, Error& error)

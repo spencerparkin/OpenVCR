@@ -4,7 +4,7 @@
 
 using namespace OpenVCR;
 
-CameraVideoSource::CameraVideoSource()
+CameraVideoSource::CameraVideoSource(const std::string& givenName) : VideoDevice(givenName)
 {
 	this->deviceNumber = 0;
 	this->cameraURL = new std::string();
@@ -16,6 +16,11 @@ CameraVideoSource::CameraVideoSource()
 {
 	delete this->cameraURL;
 	delete this->videoCapture;
+}
+
+/*static*/ CameraVideoSource* CameraVideoSource::Create(const std::string& name)
+{
+	return new CameraVideoSource(name);		// Allocate class in this DLL's heap!
 }
 
 /*virtual*/ bool CameraVideoSource::PowerOn(Machine* machine, Error& error)
