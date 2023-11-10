@@ -52,6 +52,12 @@
     <ClInclude Include="IODevice.h">
       <Filter>Sources</Filter>
     </ClInclude>
+    <ClInclude Include="VideoDevice.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="AudioDevice.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Machine.cpp">
@@ -79,6 +85,12 @@
       <Filter>Sources\VideoFilters</Filter>
     </ClCompile>
     <ClCompile Include="IODevice.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="AudioDevice.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="VideoDevice.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
   </ItemGroup>

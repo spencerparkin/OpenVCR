@@ -113,14 +113,13 @@ bool Machine::Tick(Error& error)
 		IODevice* ioDevice = *iter;
 		ioDeviceQueue.erase(iter);
 
-		bool moved = false;
-		if (!ioDevice->MoveData(this, moved, error))
+		if (!ioDevice->MoveData(this, error))
 		{
 			error.Add("IO device failed when trying to move data.");
 			return false;
 		}
 
-		if (moved)
+		if (ioDevice->IsComplete())
 			deferCount = 0;
 		else
 		{

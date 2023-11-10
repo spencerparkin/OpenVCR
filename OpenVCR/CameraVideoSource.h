@@ -1,11 +1,11 @@
 #pragma once
 
-#include "IODevice.h"
+#include "VideoDevice.h"
 #include <opencv2/videoio.hpp>
 
 namespace OpenVCR
 {
-	class OPEN_VCR_API CameraVideoSource : public IODevice
+	class OPEN_VCR_API CameraVideoSource : public VideoDevice
 	{
 	public:
 		CameraVideoSource();
@@ -13,9 +13,7 @@ namespace OpenVCR
 
 		virtual bool PowerOn(Machine* machine, Error& error) override;
 		virtual bool PowerOff(Machine* machine, Error& error) override;
-		virtual bool PreTick(Machine* machine, Error& error) override;
-		virtual bool MoveData(Machine* machine, bool& moved, Error& error) override;
-		virtual cv::Mat* GetFrameData() override;
+		virtual bool MoveData(Machine* machine, Error& error) override;
 		virtual bool GetFrameSize(cv::Size& frameSize, Error& error) override;
 		virtual bool GetFrameRate(double& frameRate, Error& error) override;
 
@@ -30,9 +28,6 @@ namespace OpenVCR
 		long GetFrameNumber();
 
 	private:
-
-		bool frameReady;
-		cv::Mat* frame;
 		cv::VideoCapture* videoCapture;
 		std::string* cameraURL;
 		int deviceNumber;

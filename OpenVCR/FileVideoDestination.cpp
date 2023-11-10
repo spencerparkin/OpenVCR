@@ -36,14 +36,14 @@ FileVideoDestination::FileVideoDestination()
 		return false;
 	}
 
-	IODevice* ioDevice = machine->FindIODevice<IODevice>(*this->sourceName);
-	if (!ioDevice)
+	VideoDevice* videoDevice = machine->FindIODevice<VideoDevice>(*this->sourceName);
+	if (!videoDevice)
 	{
 		error.Add(std::format("File video destination can't find frame source with name \"{}\".", this->sourceName->c_str()));
 		return false;
 	}
 
-	if (!ioDevice->GetFrameSize(*this->frameSize, error))
+	if (!videoDevice->GetFrameSize(*this->frameSize, error))
 	{
 		error.Add("Could not query source device for frame size.");
 		return false;
@@ -55,7 +55,7 @@ FileVideoDestination::FileVideoDestination()
 		return false;
 	}
 
-	if (!ioDevice->GetFrameRate(this->frameRateFPS, error))
+	if (!videoDevice->GetFrameRate(this->frameRateFPS, error))
 	{
 		error.Add("Could not query for source device frame-rate.");
 		return false;
@@ -93,26 +93,30 @@ FileVideoDestination::FileVideoDestination()
 	return true;
 }
 
-/*virtual*/ bool FileVideoDestination::MoveData(Machine* machine, bool& moved, Error& error)
+/*virtual*/ bool FileVideoDestination::MoveData(Machine* machine, Error& error)
 {
-	moved = false;
-
 	if (!this->videoWriter)
 	{
 		error.Add("No video writer to which we may add a frame.");
 		return false;
 	}
 
-	IODevice* ioDevice = machine->FindIODevice<IODevice>(*this->sourceName);
-	if (!ioDevice)
+	VideoDevice* videoDevice = machine->FindIODevice<VideoDevice>(*this->sourceName);
+	if (!videoDevice)
 	{
 		error.Add(std::format("File video destination failed to find source IO device with name \"{}\".", this->sourceName->c_str()));
 		return false;
 	}
 
-	cv::Mat* sourceFrame = ioDevice->GetFrameData();
-	if (!sourceFrame)
+	if (!videoDevice->IsComplete())
 		return true;
+
+	cv::Mat* sourceFrame = videoDevice->GetFrameData();
+	if (!sourceFrame)
+	{
+		error.Add("Completed source did not have any frame data for us.");
+		return false;
+	}
 
 	if (!this->suspendFrameWrites)
 	{
@@ -120,7 +124,7 @@ FileVideoDestination::FileVideoDestination()
 		*this->videoWriter << *sourceFrame;
 	}
 
-	moved = true;
+	this->complete = true;
 	return true;
 }
 

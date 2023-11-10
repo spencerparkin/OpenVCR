@@ -10,7 +10,6 @@ FileVideoSource::FileVideoSource()
 	this->videoCapture = new cv::VideoCapture();
 	this->frame = new cv::Mat();
 	this->frameCount = 0;
-	this->frameReady = false;
 }
 
 /*virtual*/ FileVideoSource::~FileVideoSource()
@@ -63,24 +62,8 @@ const std::string& FileVideoSource::GetVideoFilePath()
 	return true;
 }
 
-/*virtual*/ bool FileVideoSource::PreTick(Machine* machine, Error& error)
+/*virtual*/ bool FileVideoSource::MoveData(Machine* machine, Error& error)
 {
-	this->frameReady = false;
-	return true;
-}
-
-/*virtual*/ cv::Mat* FileVideoSource::GetFrameData()
-{
-	if (this->frameReady)
-		return this->frame;
-
-	return nullptr;
-}
-
-/*virtual*/ bool FileVideoSource::MoveData(Machine* machine, bool& moved, Error& error)
-{
-	moved = false;
-
 	if (!this->videoCapture || !this->videoCapture->isOpened())
 	{
 		error.Add("Video capture not setup!");
@@ -98,8 +81,7 @@ const std::string& FileVideoSource::GetVideoFilePath()
 				return false;
 			}
 
-			moved = true;
-			this->frameReady = true;
+			this->complete = true;
 			break;
 		}
 		case Machine::Disposition::PLACE:
@@ -129,8 +111,7 @@ const std::string& FileVideoSource::GetVideoFilePath()
 				return false;
 			}
 
-			moved = true;
-			this->frameReady = true;
+			this->complete = true;
 			break;
 		}
 	}

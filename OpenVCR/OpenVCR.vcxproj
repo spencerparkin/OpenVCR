@@ -159,6 +159,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="AudioDevice.h" />
     <ClInclude Include="CameraVideoSource.h" />
     <ClInclude Include="Common.h" />
     <ClInclude Include="CropFilter.h" />
@@ -168,9 +169,11 @@
     <ClInclude Include="IODevice.h" />
     <ClInclude Include="RotationFilter.h" />
     <ClInclude Include="Machine.h" />
+    <ClInclude Include="VideoDevice.h" />
     <ClInclude Include="WindowVideoDestination.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AudioDevice.cpp" />
     <ClCompile Include="CameraVideoSource.cpp" />
     <ClCompile Include="CropFilter.cpp" />
     <ClCompile Include="Error.cpp" />
@@ -179,6 +182,7 @@
     <ClCompile Include="IODevice.cpp" />
     <ClCompile Include="Machine.cpp" />
     <ClCompile Include="RotationFilter.cpp" />
+    <ClCompile Include="VideoDevice.cpp" />
     <ClCompile Include="WindowVideoDestination.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -19,12 +19,10 @@ WindowVideoDestination::WindowVideoDestination()
     this->frameTexture = nullptr;
     this->renderTargetView = nullptr;
     this->renderMode = RenderMode::MAINTAIN_ASPECT_RATIO;
-    this->sourceName = new std::string();
 }
 
 /*virtual*/ WindowVideoDestination::~WindowVideoDestination()
 {
-    delete this->sourceName;
 }
 
 void WindowVideoDestination::SetWindowHandle(HWND windowHandle)
@@ -253,23 +251,27 @@ bool WindowVideoDestination::CreateFrameTexture(Error& error)
     return true;
 }
 
-/*virtual*/ bool WindowVideoDestination::MoveData(Machine* machine, bool& moved, Error& error)
+/*virtual*/ bool WindowVideoDestination::MoveData(Machine* machine, Error& error)
 {
-    moved = false;
-
-    IODevice* ioDevice = machine->FindIODevice<IODevice>(*this->sourceName);
-    if (!ioDevice)
+    VideoDevice* videoDevice = machine->FindIODevice<VideoDevice>(*this->sourceName);
+    if (!videoDevice)
     {
-        error.Add(std::format("Window video destination failed to find IO device with name \"{}\".", this->sourceName->c_str()));
+        error.Add(std::format("Window video destination failed to find video device with name \"{}\".", this->sourceName->c_str()));
         return false;
     }
 
-    // Is our source frame ready yet?
-    cv::Mat* sourceFrame = ioDevice->GetFrameData();
-    if (!sourceFrame)
+    // We can't do anything until our video source is complete.
+    if (!videoDevice->IsComplete())
         return true;
 
-    // Yes.  We need the frame in a format where we can copy it directly into the direct-X texture resource.
+    cv::Mat* sourceFrame = videoDevice->GetFrameData();
+    if (!sourceFrame)
+    {
+        error.Add("Video source did not have any frame data for us.");
+        return false;
+    }
+
+    // We need the frame in a format where we can copy it directly into the direct-X texture resource.
     cv::Mat frameRGBA;
     cv::cvtColor(*sourceFrame, frameRGBA, cv::COLOR_BGR2RGBA);
 
@@ -297,7 +299,7 @@ bool WindowVideoDestination::CreateFrameTexture(Error& error)
         return false;
     }
 
-    moved = true;
+    this->complete = true;
 	return true;
 }
 

@@ -18,18 +18,21 @@ namespace OpenVCR
 		virtual bool PowerOff(Machine* machine, Error& error);
 		virtual bool PreTick(Machine* machine, Error& error);
 		virtual bool PostTick(Machine* machine, Error& error);
-		virtual bool MoveData(Machine* machine, bool& moved, Error& error);
-		virtual cv::Mat* GetFrameData();
-		virtual void* GetSampleData();
-		virtual bool GetFrameSize(cv::Size& frameSize, Error& error);
-		virtual bool GetFrameRate(double& frameRate, Error& error);
+		virtual bool MoveData(Machine* machine, Error& error);
 		virtual int GetSortKey() const;
 		
-		void SetName(const std::string& givenName);
-		const std::string& GetName() const;
+		void SetName(const std::string& givenName) { *this->name = givenName; }
+		const std::string& GetName() const { return *this->name; }
+
+		void SetSourceName(const std::string& givenName) { *this->sourceName = givenName; }
+		const std::string& GetSourceName() const { return *this->sourceName; }
+
+		bool IsComplete() const { return this->complete; }
 
 	protected:
 
+		bool complete;
 		std::string* name;
+		std::string* sourceName;
 	};
 }

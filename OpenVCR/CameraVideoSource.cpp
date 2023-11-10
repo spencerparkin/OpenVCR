@@ -9,16 +9,13 @@ CameraVideoSource::CameraVideoSource()
 	this->deviceNumber = 0;
 	this->cameraURL = new std::string();
 	this->videoCapture = new cv::VideoCapture();
-	this->frame = new cv::Mat();
 	this->frameNumber = 0;
-	this->frameReady = false;
 }
 
 /*virtual*/ CameraVideoSource::~CameraVideoSource()
 {
 	delete this->cameraURL;
 	delete this->videoCapture;
-	delete this->frame;
 }
 
 /*virtual*/ bool CameraVideoSource::PowerOn(Machine* machine, Error& error)
@@ -59,16 +56,8 @@ CameraVideoSource::CameraVideoSource()
 	return true;
 }
 
-/*virtual*/ bool CameraVideoSource::PreTick(Machine* machine, Error& error)
+/*virtual*/ bool CameraVideoSource::MoveData(Machine* machine, Error& error)
 {
-	this->frameReady = false;
-	return true;
-}
-
-/*virtual*/ bool CameraVideoSource::MoveData(Machine* machine, bool& moved, Error& error)
-{
-	moved = false;
-
 	if (!this->videoCapture || !this->videoCapture->isOpened())
 	{
 		error.Add("Video capture device not yet setup.");
@@ -87,8 +76,7 @@ CameraVideoSource::CameraVideoSource()
 			}
 
 			this->frameNumber++;
-			this->frameReady = true;
-			moved = true;
+			this->complete = true;
 			break;
 		}
 		case Machine::Disposition::PLACE:
@@ -99,14 +87,6 @@ CameraVideoSource::CameraVideoSource()
 	}
 
 	return true;
-}
-
-/*virtual*/ cv::Mat* CameraVideoSource::GetFrameData()
-{
-	if (this->frameReady)
-		return this->frame;
-
-	return nullptr;
 }
 
 /*virtual*/ bool CameraVideoSource::GetFrameSize(cv::Size& frameSize, Error& error)

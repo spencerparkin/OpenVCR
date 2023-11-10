@@ -5,11 +5,14 @@ using namespace OpenVCR;
 IODevice::IODevice()
 {
 	this->name = new std::string;
+	this->sourceName = new std::string;
+	this->complete = false;
 }
 
 /*virtual*/ IODevice::~IODevice()
 {
 	delete this->name;
+	delete this->sourceName;
 }
 
 /*virtual*/ bool IODevice::PowerOn(Machine* machine, Error& error)
@@ -24,6 +27,7 @@ IODevice::IODevice()
 
 /*virtual*/ bool IODevice::PreTick(Machine* machine, Error& error)
 {
+	this->complete = false;
 	return true;
 }
 
@@ -32,28 +36,7 @@ IODevice::IODevice()
 	return true;
 }
 
-/*virtual*/ bool IODevice::MoveData(Machine* machine, bool& moved, Error& error)
-{
-	moved = false;
-	return false;
-}
-
-/*virtual*/ cv::Mat* IODevice::GetFrameData()
-{
-	return nullptr;
-}
-
-/*virtual*/ void* IODevice::GetSampleData()
-{
-	return nullptr;
-}
-
-/*virtual*/ bool IODevice::GetFrameSize(cv::Size& frameSize, Error& error)
-{
-	return false;
-}
-
-/*virtual*/ bool IODevice::GetFrameRate(double& frameRate, Error& error)
+/*virtual*/ bool IODevice::MoveData(Machine* machine, Error& error)
 {
 	return false;
 }
@@ -61,14 +44,4 @@ IODevice::IODevice()
 /*virtual*/ int IODevice::GetSortKey() const
 {
 	return 0;
-}
-
-void IODevice::SetName(const std::string& givenName)
-{
-	*this->name = givenName;
-}
-
-const std::string& IODevice::GetName() const
-{
-	return *this->name;
 }
