@@ -8,11 +8,14 @@ FileVideoDestination::FileVideoDestination(const std::string& givenName) : Video
 {
 	this->videoWriter = nullptr;
 	this->videoFilePath = new std::string();
+	this->frameSize = new cv::Size(0, 0);
+	this->frameRateFPS = 0.0;
 }
 
 /*virtual*/ FileVideoDestination::~FileVideoDestination()
 {
 	delete this->videoFilePath;
+	delete this->frameSize;
 }
 
 /*static*/ FileVideoDestination* FileVideoDestination::Create(const std::string& name)
@@ -42,28 +45,23 @@ FileVideoDestination::FileVideoDestination(const std::string& givenName) : Video
 		return false;
 	}
 
-	cv::Size frameSize;
-	if (!videoDevice->GetFrameSize(frameSize, error))
+	if (this->frameSize->width == 0 || this->frameSize->height == 0)
 	{
-		error.Add("Could not query source device for frame size.");
-		return false;
+		if (!videoDevice->GetFrameSize(*this->frameSize, error))
+		{
+			error.Add("Could not query source device for frame size.");
+			return false;
+		}
 	}
 
-	if (frameSize.width == 0 || frameSize.height == 0)
+	if (this->frameRateFPS == 0.0)
 	{
-		frameSize.width = 512;
-		frameSize.height = 512;
+		if (!videoDevice->GetFrameRate(this->frameRateFPS, error))
+		{
+			error.Add("Could not query for source device frame-rate.");
+			return false;
+		}
 	}
-
-	double frameRateFPS = 30.0;
-	if (!videoDevice->GetFrameRate(frameRateFPS, error))
-	{
-		error.Add("Could not query for source device frame-rate.");
-		return false;
-	}
-
-	if (frameRateFPS == 0)
-		frameRateFPS = 30.0f;
 
 	int encoderFourCC = 0;
 	// TODO: Need this?
@@ -71,7 +69,7 @@ FileVideoDestination::FileVideoDestination(const std::string& givenName) : Video
 
 	this->videoWriter = new cv::VideoWriter();
 	
-	if (!this->videoWriter->open(*this->videoFilePath, encoderFourCC, frameRateFPS, frameSize))
+	if (!this->videoWriter->open(*this->videoFilePath, encoderFourCC, this->frameRateFPS, *this->frameSize))
 	{
 		error.Add("Failed to open (for writing) the file: " + *this->videoFilePath);
 		return false;
@@ -96,6 +94,17 @@ FileVideoDestination::FileVideoDestination(const std::string& givenName) : Video
 	}
 
 	return true;
+}
+
+void FileVideoDestination::SetFrameSize(int width, int height)
+{
+	this->frameSize->width = width;
+	this->frameSize->height = height;
+}
+
+void FileVideoDestination::SetFrameRate(double frameRateFPS)
+{
+	this->frameRateFPS = frameRateFPS;
 }
 
 /*virtual*/ bool FileVideoDestination::MoveData(Machine* machine, Error& error)

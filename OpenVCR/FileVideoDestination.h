@@ -21,6 +21,9 @@ namespace OpenVCR
 		void SetVideoFilePath(const std::string& videoFilePath);
 		const std::string& GetVideoFilePath() const;
 
+		void SetFrameSize(int width, int height);
+		void SetFrameRate(double frameRateFPS);
+
 		void Pause();
 		void Resume();
 		bool IsPaused() const;
@@ -29,5 +32,7 @@ namespace OpenVCR
 		cv::VideoWriter* videoWriter;
 		std::string* videoFilePath;
 		bool suspendFrameWrites;
+		cv::Size* frameSize;
+		double frameRateFPS;
 	};
 }

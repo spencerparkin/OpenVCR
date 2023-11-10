@@ -134,6 +134,8 @@ void Frame::OnSetupMachine(wxCommandEvent& event)
 
 			fileVideoDestination->SetVideoFilePath((const char*)saveFileDialog.GetPath());
 			fileVideoDestination->SetSourceName(rotationFilter->GetName());
+			fileVideoDestination->SetFrameRate(30.0);
+			fileVideoDestination->SetFrameSize(640, 480);
 
 			auto windowVideoDestination = wxGetApp().machine.AddIODevice<OpenVCR::WindowVideoDestination>("window_destination", error);
 			if (!windowVideoDestination)
