@@ -8,15 +8,11 @@ FileVideoDestination::FileVideoDestination(const std::string& givenName) : Video
 {
 	this->videoWriter = nullptr;
 	this->videoFilePath = new std::string();
-	this->frameRateFPS = 30.0;
-	this->encoderFourCC = 0;
-	this->frameSize = new cv::Size(0, 0);
 }
 
 /*virtual*/ FileVideoDestination::~FileVideoDestination()
 {
 	delete this->videoFilePath;
-	delete this->frameSize;
 }
 
 /*static*/ FileVideoDestination* FileVideoDestination::Create(const std::string& name)
@@ -46,30 +42,33 @@ FileVideoDestination::FileVideoDestination(const std::string& givenName) : Video
 		return false;
 	}
 
-	if (!videoDevice->GetFrameSize(*this->frameSize, error))
+	cv::Size frameSize;
+	if (!videoDevice->GetFrameSize(frameSize, error))
 	{
 		error.Add("Could not query source device for frame size.");
 		return false;
 	}
 
-	if (this->frameSize->width == 0 || this->frameSize->height == 0)
+	if (frameSize.width == 0 || frameSize.height == 0)
 	{
 		error.Add("Could not resolve frame size.");
 		return false;
 	}
 
-	if (!videoDevice->GetFrameRate(this->frameRateFPS, error))
+	double frameRateFPS = 30.0;
+	if (!videoDevice->GetFrameRate(frameRateFPS, error))
 	{
 		error.Add("Could not query for source device frame-rate.");
 		return false;
 	}
 
+	int encoderFourCC = 0;
 	// TODO: Need this?
-	//this->encoderFourCC = (int)videoCapture->get(cv::CAP_PROP_FOURCC);
+	//encoderFourCC = (int)videoCapture->get(cv::CAP_PROP_FOURCC);
 
 	this->videoWriter = new cv::VideoWriter();
 	
-	if (!this->videoWriter->open(*this->videoFilePath, this->encoderFourCC, this->frameRateFPS, *this->frameSize))
+	if (!this->videoWriter->open(*this->videoFilePath, encoderFourCC, frameRateFPS, frameSize))
 	{
 		error.Add("Failed to open (for writing) the file: " + *this->videoFilePath);
 		return false;

@@ -28,9 +28,6 @@ namespace OpenVCR
 	private:
 		cv::VideoWriter* videoWriter;
 		std::string* videoFilePath;
-		double frameRateFPS;
-		int encoderFourCC;
-		cv::Size* frameSize;
 		bool suspendFrameWrites;
 	};
 }

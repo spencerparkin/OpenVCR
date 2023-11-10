@@ -25,6 +25,9 @@ Frame::Frame() : wxFrame(nullptr, wxID_ANY, "OpenVCR Demo", wxDefaultPosition, w
 	fileMenu->Append(new wxMenuItem(fileMenu, ID_PowerOnMachine, "Power On Machine"));
 	fileMenu->Append(new wxMenuItem(fileMenu, ID_PowerOffMachine, "Power Off Machine"));
 	fileMenu->AppendSeparator();
+	fileMenu->Append(new wxMenuItem(fileMenu, ID_SetupToCaptureVideo, "Setup to Capture Video"));
+	fileMenu->Append(new wxMenuItem(fileMenu, ID_SetupToReplayVideo, "Setup to Replay Video"));
+	fileMenu->AppendSeparator();
 	fileMenu->Append(new wxMenuItem(fileMenu, ID_Exit, "Exit"));
 
 	wxMenu* helpMenu = new wxMenu();
@@ -74,6 +77,9 @@ void Frame::OnClose(wxCloseEvent& event)
 {
 	this->StopThread();
 	
+	OpenVCR::Error error;
+	wxGetApp().machine.DeleteAllIODevices(error);
+
 	wxFrame::OnCloseWindow(event);
 }
 
@@ -92,6 +98,8 @@ void Frame::OnSetupMachine(wxCommandEvent& event)
 			wxFileDialog saveFileDialog(this, "Choose file where video footage will get dumped.", "", "", "Any File (*.*)|*.*", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 			if (wxID_OK != saveFileDialog.ShowModal())
 				return;
+
+			wxGetApp().machine.DeleteAllIODevices(error);
 
 			auto cameraVideoSource = wxGetApp().machine.AddIODevice<OpenVCR::CameraVideoSource>("video_source", error);
 			if (!cameraVideoSource)
@@ -121,6 +129,8 @@ void Frame::OnSetupMachine(wxCommandEvent& event)
 		}
 		case ID_SetupToReplayVideo:
 		{
+			wxGetApp().machine.DeleteAllIODevices(error);
+
 			break;
 		}
 	}
