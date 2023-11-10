@@ -125,6 +125,17 @@ void Frame::OnSetupMachine(wxCommandEvent& event)
 			fileVideoDestination->SetVideoFilePath((const char*)saveFileDialog.GetPath());
 			fileVideoDestination->SetSourceName(cameraVideoSource->GetName());
 
+			auto windowVideoDestination = wxGetApp().machine.AddIODevice<OpenVCR::WindowVideoDestination>("window_destination", error);
+			if (!windowVideoDestination)
+			{
+				wxMessageBox(wxString::Format("Failed to window video destination: %s", error.GetErrorMessage().c_str()), "Error", wxOK | wxICON_ERROR, this);
+				return;
+			}
+
+			windowVideoDestination->SetWindowHandle(this->renderControl->GetHWND());
+			windowVideoDestination->SetSourceName(cameraVideoSource->GetName());
+
+			wxMessageBox("Now setup to capture and dump video file!", "Success", wxOK | wxICON_INFORMATION, this);
 			break;
 		}
 		case ID_SetupToReplayVideo:
