@@ -51,8 +51,8 @@ FileVideoDestination::FileVideoDestination(const std::string& givenName) : Video
 
 	if (frameSize.width == 0 || frameSize.height == 0)
 	{
-		error.Add("Could not resolve frame size.");
-		return false;
+		frameSize.width = 512;
+		frameSize.height = 512;
 	}
 
 	double frameRateFPS = 30.0;

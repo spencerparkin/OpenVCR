@@ -20,6 +20,15 @@
     <Filter Include="Sources\AudioDestinations">
       <UniqueIdentifier>{65d70af5-95ea-41a3-8c4e-92f14fe9d619}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\VideoBlenders">
+      <UniqueIdentifier>{b6f4c802-3a98-4dae-9312-80e8de9db300}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\AudioFilters">
+      <UniqueIdentifier>{a11c5595-44e4-4c59-b142-80bc037240e1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\AudioMixers">
+      <UniqueIdentifier>{a7f57bfe-e2dc-46f6-bb8d-1e46c57ec0ff}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Machine.h">

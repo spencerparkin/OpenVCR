@@ -115,6 +115,16 @@ void Frame::OnSetupMachine(wxCommandEvent& event)
 			else
 				cameraVideoSource->SetCameraURL((const char*)cameraText.c_str());
 			
+			auto rotationFilter = wxGetApp().machine.AddIODevice<OpenVCR::RotationFilter>("rotation_filter", error);
+			if (!rotationFilter)
+			{
+				wxMessageBox(wxString::Format("Failed to create rotation filter: %s", error.GetErrorMessage().c_str()), "Error", wxOK | wxICON_ERROR, this);
+				return;
+			}
+
+			rotationFilter->SetSourceName(cameraVideoSource->GetName());
+			rotationFilter->SetRotationAngle(45.0);
+
 			auto fileVideoDestination = wxGetApp().machine.AddIODevice<OpenVCR::FileVideoDestination>("video_destination", error);
 			if (!fileVideoDestination)
 			{
@@ -123,7 +133,7 @@ void Frame::OnSetupMachine(wxCommandEvent& event)
 			}
 
 			fileVideoDestination->SetVideoFilePath((const char*)saveFileDialog.GetPath());
-			fileVideoDestination->SetSourceName(cameraVideoSource->GetName());
+			fileVideoDestination->SetSourceName(rotationFilter->GetName());
 
 			auto windowVideoDestination = wxGetApp().machine.AddIODevice<OpenVCR::WindowVideoDestination>("window_destination", error);
 			if (!windowVideoDestination)
@@ -133,7 +143,7 @@ void Frame::OnSetupMachine(wxCommandEvent& event)
 			}
 
 			windowVideoDestination->SetWindowHandle(this->renderControl->GetHWND());
-			windowVideoDestination->SetSourceName(cameraVideoSource->GetName());
+			windowVideoDestination->SetSourceName(rotationFilter->GetName());
 
 			wxMessageBox("Now setup to capture and dump video file!", "Success", wxOK | wxICON_INFORMATION, this);
 			break;
