@@ -8,7 +8,6 @@ FileVideoSource::FileVideoSource(const std::string& givenName) : VideoDevice(giv
 {
 	this->videoFilePath = new std::string();
 	this->videoCapture = new cv::VideoCapture();
-	this->frame = new cv::Mat();
 	this->frameCount = 0;
 }
 
@@ -16,7 +15,6 @@ FileVideoSource::FileVideoSource(const std::string& givenName) : VideoDevice(giv
 {
 	delete this->videoFilePath;
 	delete this->videoCapture;
-	delete this->frame;
 }
 
 /*static*/ FileVideoSource* FileVideoSource::Create(const std::string& name)
@@ -82,7 +80,7 @@ const std::string& FileVideoSource::GetVideoFilePath()
 		{
 			if (!this->videoCapture->read(*this->frame))
 			{
-				error.Add("Read method on video capture device failed.");
+				error.Add("At end of video!");
 				return false;
 			}
 

@@ -19,7 +19,7 @@ FileAudioDestination::FileAudioDestination(const std::string& givenName) : Audio
 	this->outputSpec.samples = 4096;
 	this->outputSpec.silence = 0;
 	this->outputSpec.channels = 1;
-	this->outputSpec.format = AUDIO_S16LSB;
+	this->outputSpec.format = AUDIO_S16LSB;		// What about AUDIO_S8, or is that really poor quality?
 	this->outputSpec.freq = 22050;
 	this->outputSpec.callback = nullptr;
 	this->outputSpec.userdata = nullptr;

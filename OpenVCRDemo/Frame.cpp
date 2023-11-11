@@ -106,7 +106,7 @@ void Frame::OnSetupMachine(wxCommandEvent& event)
 			if (wxID_OK != deviceNumberDialog.ShowModal())
 				return;
 
-			wxFileDialog saveFileDialog(this, "Choose file where video footage will get dumped.", "", "", "Any File (*.*)|*.*", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+			wxFileDialog saveFileDialog(this, "Choose file where video footage will get dumped.", "", "", "Video File (*.avi)|*.avi", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 			if (wxID_OK != saveFileDialog.ShowModal())
 				return;
 
@@ -163,13 +163,36 @@ void Frame::OnSetupMachine(wxCommandEvent& event)
 		}
 		case ID_SetupToReplayVideo:
 		{
+			wxFileDialog openFileDialog(this, "Choose video file.", "", "", "Video File (*.avi)|*.avi", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+			if (wxID_OK != openFileDialog.ShowModal())
+				return;
+
 			wxGetApp().machine.DeleteAllIODevices(error);
+
+			auto fileVideoSource = wxGetApp().machine.AddIODevice<OpenVCR::FileVideoSource>("video_source", error);
+			if (!fileVideoSource)
+			{
+				wxMessageBox(wxString::Format("Failed to create video source: %s", error.GetErrorMessage().c_str()), "Error", wxOK | wxICON_ERROR, this);
+				return;
+			}
+
+			fileVideoSource->SetVideoFilePath((const char*)openFileDialog.GetPath().c_str());
+
+			auto windowVideoDestination = wxGetApp().machine.AddIODevice<OpenVCR::WindowVideoDestination>("window_destination", error);
+			if (!windowVideoDestination)
+			{
+				wxMessageBox(wxString::Format("Failed to create window video destination: %s", error.GetErrorMessage().c_str()), "Error", wxOK | wxICON_ERROR, this);
+				return;
+			}
+
+			windowVideoDestination->SetWindowHandle(this->renderControl->GetHWND());
+			windowVideoDestination->SetSourceName(fileVideoSource->GetName());
 
 			break;
 		}
 		case ID_SetupToCaptureAudio:
 		{
-			wxFileDialog saveFileDialog(this, "Choose file where audio will get dumped.", "", "", "Any File (*.wav)|*.wav", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+			wxFileDialog saveFileDialog(this, "Choose file where audio will get dumped.", "", "", "Wave File (*.wav)|*.wav", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 			if (wxID_OK != saveFileDialog.ShowModal())
 				return;
 
@@ -198,7 +221,7 @@ void Frame::OnSetupMachine(wxCommandEvent& event)
 		}
 		case ID_SetupToReplayAudio:
 		{
-			wxFileDialog openFileDialog(this, "Choose audio wave file.", "", "", "Any File (*.wav)|*.wav", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+			wxFileDialog openFileDialog(this, "Choose audio wave file.", "", "", "Wave File (*.wav)|*.wav", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 			if (wxID_OK != openFileDialog.ShowModal())
 				return;
 
