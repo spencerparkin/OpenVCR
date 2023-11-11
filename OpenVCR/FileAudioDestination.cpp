@@ -89,25 +89,32 @@ FileAudioDestination::FileAudioDestination(const std::string& givenName) : Audio
 		if (audioBufferSize > 0)
 		{
 			Uint8* audioBuffer = new Uint8[audioBufferSize];
-			int result = SDL_AudioStreamGet(this->audioStream, audioBuffer, audioBufferSize);
-			if (result == 0)
-				error.Add(std::string("Failed to get stamples from stream: {}", SDL_GetError()));
+			if (!audioBuffer)
+				error.Add("Could not allocate memory for audio buffer!");
+			else
+			{
+				int result = SDL_AudioStreamGet(this->audioStream, audioBuffer, audioBufferSize);
+				if (result == 0)
+					error.Add(std::string("Failed to get samples from stream: {}", SDL_GetError()));
+				else
+				{
+					AudioFile<int> audioFile;
+					audioFile.setNumChannels(this->outputSpec.channels);
+					audioFile.setNumSamplesPerChannel(audioBufferSize / 2);
+					audioFile.setSampleRate(this->outputSpec.freq);
+					audioFile.setBitDepth(16);
 
-			AudioFile<int> audioFile;
-			audioFile.setNumChannels(this->outputSpec.channels);
-			audioFile.setNumSamplesPerChannel(audioBufferSize / 2);
-			audioFile.setSampleRate(this->outputSpec.freq);
-			audioFile.setBitDepth(16);
+					Sint16* audioBufferSamples = reinterpret_cast<Sint16*>(audioBuffer);
+					for (int i = 0; i < (signed)audioBufferSize / 2; i++)
+						audioFile.samples[0][i] = audioBufferSamples[i];
 
-			Sint16* audioBufferSamples = reinterpret_cast<Sint16*>(audioBuffer);
-			for (int i = 0; i < (signed)audioBufferSize / 2; i++)
-				audioFile.samples[0][i] = audioBufferSamples[i];
+					delete[] audioBuffer;
 
-			delete[] audioBuffer;
-
-			bool saved = audioFile.save(*this->audioFilePath, AudioFileFormat::Wave);
-			if (!saved)
-				error.Add(std::format("Failed to save file: {}", this->audioFilePath->c_str()));
+					bool saved = audioFile.save(*this->audioFilePath, AudioFileFormat::Wave);
+					if (!saved)
+						error.Add(std::format("Failed to save file: {}", this->audioFilePath->c_str()));
+				}
+			}
 		}
 
 		SDL_FreeAudioStream(this->audioStream);
