@@ -116,6 +116,8 @@ void SpeakAudioDestination::SetDeviceSubString(const std::string& deviceSubStr)
 
 void SpeakAudioDestination::AudioCallback(Uint8* buffer, int length)
 {
+	// TODO: Factor in volume multiplier.
+
 	for (int i = 0; i < length; i++)
 	{
 		Uint8 byte = 0;
