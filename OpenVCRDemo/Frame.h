@@ -21,6 +21,7 @@ public:
 		ID_SetupToReplayAudio,
 		ID_PowerOnMachine,
 		ID_PowerOffMachine,
+		ID_ScrubMode,
 		ID_About,
 		ID_Exit
 	};
@@ -37,6 +38,7 @@ public:
 	void OnThreadStatus(ThreadStatusEvent& event);
 	void OnSliderChanged(wxScrollEvent& event);
 	void OnResize(wxSizeEvent& event);
+	void OnScrubMode(wxCommandEvent& event);
 
 	void StartThread();
 	void StopThread();
@@ -46,4 +48,5 @@ public:
 	Thread* thread;
 	wxSlider* slider;
 	wxControl* renderControl;
+	bool scrubMode;
 };

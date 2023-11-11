@@ -24,6 +24,7 @@
 Frame::Frame() : wxFrame(nullptr, wxID_ANY, "OpenVCR Demo", wxDefaultPosition, wxSize(512, 512))
 {
 	this->thread = nullptr;
+	this->scrubMode = false;
 
 	wxMenu* fileMenu = new wxMenu();
 	fileMenu->Append(new wxMenuItem(fileMenu, ID_PowerOnMachine, "Power On Machine"));
@@ -37,11 +38,15 @@ Frame::Frame() : wxFrame(nullptr, wxID_ANY, "OpenVCR Demo", wxDefaultPosition, w
 	fileMenu->AppendSeparator();
 	fileMenu->Append(new wxMenuItem(fileMenu, ID_Exit, "Exit"));
 
+	wxMenu* optionsMenu = new wxMenu();
+	optionsMenu->Append(new wxMenuItem(optionsMenu, ID_ScrubMode, "Scrub Mode", wxEmptyString, wxITEM_CHECK));
+
 	wxMenu* helpMenu = new wxMenu();
 	helpMenu->Append(new wxMenuItem(helpMenu, ID_About, "About"));
 
 	wxMenuBar* menuBar = new wxMenuBar();
 	menuBar->Append(fileMenu, "File");
+	menuBar->Append(optionsMenu, "Options");
 	menuBar->Append(helpMenu, "Help");
 	this->SetMenuBar(menuBar);
 
@@ -53,6 +58,7 @@ Frame::Frame() : wxFrame(nullptr, wxID_ANY, "OpenVCR Demo", wxDefaultPosition, w
 	this->Bind(wxEVT_MENU, &Frame::OnSetupMachine, this, ID_SetupToReplayAudio);
 	this->Bind(wxEVT_MENU, &Frame::OnPowerMachine, this, ID_PowerOnMachine);
 	this->Bind(wxEVT_MENU, &Frame::OnPowerMachine, this, ID_PowerOffMachine);
+	this->Bind(wxEVT_MENU, &Frame::OnScrubMode, this, ID_ScrubMode);
 	this->Bind(wxEVT_MENU, &Frame::OnAbout, this, ID_About);
 	this->Bind(wxEVT_MENU, &Frame::OnExit, this, ID_Exit);
 	this->Bind(wxEVT_UPDATE_UI, &Frame::OnUpdateUI, this, ID_PowerOnMachine);
@@ -61,6 +67,7 @@ Frame::Frame() : wxFrame(nullptr, wxID_ANY, "OpenVCR Demo", wxDefaultPosition, w
 	this->Bind(wxEVT_UPDATE_UI, &Frame::OnUpdateUI, this, ID_SetupToReplayVideo);
 	this->Bind(wxEVT_UPDATE_UI, &Frame::OnUpdateUI, this, ID_SetupToCaptureAudio);
 	this->Bind(wxEVT_UPDATE_UI, &Frame::OnUpdateUI, this, ID_SetupToReplayAudio);
+	this->Bind(wxEVT_UPDATE_UI, &Frame::OnUpdateUI, this, ID_ScrubMode);
 	this->Bind(wxEVT_CLOSE_WINDOW, &Frame::OnClose, this);
 	this->Bind(EVT_THREAD_ENTERING, &Frame::OnThreadEntering, this);
 	this->Bind(EVT_THREAD_EXITING, &Frame::OnThreadExiting, this);
@@ -92,6 +99,11 @@ void Frame::OnClose(wxCloseEvent& event)
 	wxGetApp().machine.DeleteAllIODevices(error);
 
 	wxFrame::OnCloseWindow(event);
+}
+
+void Frame::OnScrubMode(wxCommandEvent& event)
+{
+	this->scrubMode = !this->scrubMode;
 }
 
 void Frame::OnSetupMachine(wxCommandEvent& event)
@@ -269,6 +281,11 @@ void Frame::OnUpdateUI(wxUpdateUIEvent& event)
 			event.Enable(wxGetApp().machine.IsOn());
 			break;
 		}
+		case ID_ScrubMode:
+		{
+			event.Check(this->scrubMode);
+			break;
+		}
 	}
 }
 
@@ -288,10 +305,10 @@ bool Frame::StringToNumberArray(const wxString& str, std::vector<int>& numberArr
 
 void Frame::OnSliderChanged(wxScrollEvent& event)
 {
-	if (wxGetApp().machine.IsOn())
+	if (wxGetApp().machine.IsOn() && this->scrubMode)
 	{
 		double lerpAlpha = double(this->slider->GetValue()) / double(this->slider->GetMax());
-		//...
+		wxGetApp().machine.SetPosition(lerpAlpha);
 	}
 }
 
@@ -301,6 +318,11 @@ void Frame::OnPowerMachine(wxCommandEvent& event)
 
 	if (event.GetId() == ID_PowerOnMachine)
 	{
+		if (this->scrubMode)
+			wxGetApp().machine.SetDisposition(OpenVCR::Machine::Disposition::PLACE);
+		else
+			wxGetApp().machine.SetDisposition(OpenVCR::Machine::Disposition::PULL);
+
 		this->StartThread();
 	}
 	else if (event.GetId() == ID_PowerOffMachine)

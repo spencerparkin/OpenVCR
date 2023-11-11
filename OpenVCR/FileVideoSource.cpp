@@ -73,8 +73,7 @@ const std::string& FileVideoSource::GetVideoFilePath()
 		return false;
 	}
 
-	double position = 0.0;
-	switch (machine->GetDisposition(position))
+	switch (machine->GetDisposition())
 	{
 		case Machine::Disposition::PULL:
 		{
@@ -89,6 +88,7 @@ const std::string& FileVideoSource::GetVideoFilePath()
 		}
 		case Machine::Disposition::PLACE:
 		{
+			double position = machine->GetPosition();
 			long framePosition = (long)::round(position * (this->frameCount - 1));
 
 			if (framePosition < 0 || framePosition >= this->frameCount)

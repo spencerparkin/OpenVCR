@@ -10,6 +10,8 @@ Machine::Machine()
 {
 	this->isPoweredOn = false;
 	this->ioDeviceMap = new std::map<std::string, IODevice*>();
+	this->disposition = Disposition::PULL;
+	this->position = 0.0;
 }
 
 /*virtual*/ Machine::~Machine()
@@ -174,8 +176,27 @@ void Machine::GetStatus(std::string& statusMsg)
 	statusMsg = "?";
 }
 
-Machine::Disposition Machine::GetDisposition(double& position)
+Machine::Disposition Machine::GetDisposition() const
 {
-	position = 0.0;
-	return Disposition::PULL;
+	return this->disposition;
+}
+
+void Machine::SetDisposition(Disposition disposition)
+{
+	this->disposition = disposition;
+}
+
+void Machine::SetPosition(double position)
+{
+	this->position = position;
+
+	if (this->position < 0.0)
+		this->position = 0.0;
+	else if (this->position > 1.0)
+		this->position = 1.0;
+}
+
+double Machine::GetPosition() const
+{
+	return this->position;
 }

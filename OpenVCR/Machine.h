@@ -78,11 +78,17 @@ namespace OpenVCR
 			PLACE
 		};
 
-		Disposition GetDisposition(double& position);
+		void SetDisposition(Disposition disposition);
+		Disposition GetDisposition() const;
+		
+		void SetPosition(double position);
+		double GetPosition() const;
 
 	private:
 
 		std::map<std::string, IODevice*>* ioDeviceMap;
 		bool isPoweredOn;
+		Disposition disposition;
+		double position;
 	};
 }

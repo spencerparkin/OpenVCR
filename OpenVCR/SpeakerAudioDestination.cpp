@@ -102,10 +102,12 @@ void SpeakAudioDestination::SetDeviceSubString(const std::string& deviceSubStr)
 
 /*virtual*/ bool SpeakAudioDestination::MoveData(Machine* machine, Error& error)
 {
-	double position = 0.0;
-	if (machine->GetDisposition(position) == Machine::Disposition::PLACE)
+	if (machine->GetDisposition() == Machine::Disposition::PLACE)
 	{
+		double position = machine->GetPosition();
+
 		// TODO: Correct our feedLocation if we've strayed too much from the position.
+		//       How much is "too much" will depend on a preset tolerance value.
 	}
 
 	this->complete = true;
