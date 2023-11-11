@@ -2,6 +2,7 @@
 
 #include "IODevice.h"
 #include <SDL.h>
+#include <vector>
 
 namespace OpenVCR
 {
@@ -12,6 +13,7 @@ namespace OpenVCR
 		virtual ~AudioDevice();
 
 		virtual Uint8* GetSampleData(Uint32& size);
+		virtual bool GetSampleData(std::vector<Uint8>& sampleBuffer);
 		virtual SDL_AudioSpec* GetAudioSpec();
 
 	protected:

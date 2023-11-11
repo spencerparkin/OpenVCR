@@ -9,10 +9,12 @@ SpeakAudioDestination::SpeakAudioDestination(const std::string& givenName) : Aud
 	this->feedLocation = 0;
 	this->audioBuffer = nullptr;
 	this->audioBufferSize = 0;
+	this->deviceSubStr = new std::string();
 }
 
 /*virtual*/ SpeakAudioDestination::~SpeakAudioDestination()
 {
+	delete this->deviceSubStr;
 }
 
 /*static*/ SpeakAudioDestination* SpeakAudioDestination::Create(const std::string& name)
@@ -60,18 +62,21 @@ SpeakAudioDestination::SpeakAudioDestination(const std::string& givenName) : Aud
 	}
 
 	const char* audioDeviceName = nullptr;
-	for (int i = 0; i < numAudioDevices; i++)
+	if (this->deviceSubStr->length() > 0)
 	{
-		audioDeviceName = SDL_GetAudioDeviceName(i, 0);
-		if (strstr(audioDeviceName, "Logi") != nullptr)
-			break;
+		for (int i = 0; i < numAudioDevices; i++)
+		{
+			audioDeviceName = SDL_GetAudioDeviceName(i, 0);
+			if (strstr(audioDeviceName, this->deviceSubStr->c_str()) != nullptr)
+				break;
+		}
 	}
 
 	SDL_AudioSpec obtainedSpec;
 	this->deviceID = SDL_OpenAudioDevice(audioDeviceName, 0, &this->audioSpec, &obtainedSpec, 0);
 	if (this->deviceID == 0)
 	{
-		error.Add(std::format("Failed to open default audio device: {}", SDL_GetError()));
+		error.Add(std::format("Failed to open audio device: {}", SDL_GetError()));
 		return false;
 	}
 
@@ -88,6 +93,11 @@ SpeakAudioDestination::SpeakAudioDestination(const std::string& givenName) : Aud
 	}
 
 	return true;
+}
+
+void SpeakAudioDestination::SetDeviceSubString(const std::string& deviceSubStr)
+{
+	*this->deviceSubStr = deviceSubStr;
 }
 
 /*virtual*/ bool SpeakAudioDestination::MoveData(Machine* machine, Error& error)

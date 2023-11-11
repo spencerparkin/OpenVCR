@@ -17,6 +17,11 @@ AudioDevice::AudioDevice(const std::string& givenName) : IODevice(givenName)
 	return nullptr;
 }
 
+/*virtual*/ bool AudioDevice::GetSampleData(std::vector<Uint8>& sampleBuffer)
+{
+	return false;
+}
+
 /*virtual*/ SDL_AudioSpec* AudioDevice::GetAudioSpec()
 {
 	return &this->audioSpec;

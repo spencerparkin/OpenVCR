@@ -73,6 +73,15 @@
     <ClInclude Include="SpeakerAudioDestination.h">
       <Filter>Sources\AudioDestinations</Filter>
     </ClInclude>
+    <ClInclude Include="MicAudioSource.h">
+      <Filter>Sources\AudioSources</Filter>
+    </ClInclude>
+    <ClInclude Include="FileAudioDestination.h">
+      <Filter>Sources\AudioDestinations</Filter>
+    </ClInclude>
+    <ClInclude Include="AudioFile.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Machine.cpp">
@@ -113,6 +122,12 @@
     </ClCompile>
     <ClCompile Include="SpeakerAudioDestination.cpp">
       <Filter>Sources\AudioDestinations</Filter>
+    </ClCompile>
+    <ClCompile Include="FileAudioDestination.cpp">
+      <Filter>Sources\AudioDestinations</Filter>
+    </ClCompile>
+    <ClCompile Include="MicAudioSource.cpp">
+      <Filter>Sources\AudioSources</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

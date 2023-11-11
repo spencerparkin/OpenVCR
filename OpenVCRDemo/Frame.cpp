@@ -7,6 +7,8 @@
 #include <WindowVideoDestination.h>
 #include <FileAudioSource.h>
 #include <SpeakerAudioDestination.h>
+#include <FileAudioDestination.h>
+#include <MicAudioSource.h>
 #include <RotationFilter.h>
 #include <CropFilter.h>
 #include <Error.h>
@@ -47,7 +49,7 @@ Frame::Frame() : wxFrame(nullptr, wxID_ANY, "OpenVCR Demo", wxDefaultPosition, w
 
 	this->Bind(wxEVT_MENU, &Frame::OnSetupMachine, this, ID_SetupToCaptureVideo);
 	this->Bind(wxEVT_MENU, &Frame::OnSetupMachine, this, ID_SetupToReplayVideo);
-	this->Bind(wxEVT_MENU, &Frame::OnSetupMachine, this, ID_SetupToReplayAudio);
+	this->Bind(wxEVT_MENU, &Frame::OnSetupMachine, this, ID_SetupToCaptureAudio);
 	this->Bind(wxEVT_MENU, &Frame::OnSetupMachine, this, ID_SetupToReplayAudio);
 	this->Bind(wxEVT_MENU, &Frame::OnPowerMachine, this, ID_PowerOnMachine);
 	this->Bind(wxEVT_MENU, &Frame::OnPowerMachine, this, ID_PowerOffMachine);
@@ -165,6 +167,35 @@ void Frame::OnSetupMachine(wxCommandEvent& event)
 
 			break;
 		}
+		case ID_SetupToCaptureAudio:
+		{
+			wxFileDialog saveFileDialog(this, "Choose file where audio will get dumped.", "", "", "Any File (*.wav)|*.wav", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+			if (wxID_OK != saveFileDialog.ShowModal())
+				return;
+
+			wxGetApp().machine.DeleteAllIODevices(error);
+
+			auto micAudioSource = wxGetApp().machine.AddIODevice<OpenVCR::MicAudioSource>("audio_source", error);
+			if (!micAudioSource)
+			{
+				wxMessageBox(wxString::Format("Failed to create audio source: %s", error.GetErrorMessage().c_str()), "Error", wxOK | wxICON_ERROR, this);
+				return;
+			}
+
+			micAudioSource->SetDeviceSubString("Logi");
+
+			auto fileAudioDestination = wxGetApp().machine.AddIODevice<OpenVCR::FileAudioDestination>("audio_destination", error);
+			if (!fileAudioDestination)
+			{
+				wxMessageBox(wxString::Format("Failed to create file audio destination: %s", error.GetErrorMessage().c_str()), "Error", wxOK | wxICON_ERROR, this);
+				return;
+			}
+
+			fileAudioDestination->SetSourceName(micAudioSource->GetName());
+			fileAudioDestination->SetAudioFilePath((const char*)saveFileDialog.GetPath().c_str());
+
+			break;
+		}
 		case ID_SetupToReplayAudio:
 		{
 			wxFileDialog openFileDialog(this, "Choose audio wave file.", "", "", "Any File (*.wav)|*.wav", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
@@ -190,6 +221,7 @@ void Frame::OnSetupMachine(wxCommandEvent& event)
 			}
 
 			speakerAudioDestination->SetSourceName(fileAudioSource->GetName());
+			speakerAudioDestination->SetDeviceSubString("Logi");
 
 			break;
 		}

@@ -1,20 +1,22 @@
 #pragma once
 
 #include "AudioDevice.h"
+#include <SDL.h>
 
 namespace OpenVCR
 {
-	class OPEN_VCR_API SpeakAudioDestination : public AudioDevice
+	class OPEN_VCR_API MicAudioSource : public AudioDevice
 	{
 	public:
-		SpeakAudioDestination(const std::string& givenName);
-		virtual ~SpeakAudioDestination();
+		MicAudioSource(const std::string& givenName);
+		virtual ~MicAudioSource();
 
-		static SpeakAudioDestination* Create(const std::string& name);
+		static MicAudioSource* Create(const std::string& name);
 
 		virtual bool PowerOn(Machine* machine, Error& error) override;
 		virtual bool PowerOff(Machine* machine, Error& error) override;
 		virtual bool MoveData(Machine* machine, Error& error) override;
+		virtual bool GetSampleData(std::vector<Uint8>& sampleBuffer) override;
 		virtual int GetSortKey() const override;
 
 		void SetDeviceSubString(const std::string& deviceSubStr);
@@ -27,8 +29,7 @@ namespace OpenVCR
 
 		std::string* deviceSubStr;
 		SDL_AudioDeviceID deviceID;
-		Uint32 feedLocation;
-		Uint8* audioBuffer;
-		Uint32 audioBufferSize;
+		std::vector<Uint8>* audioThreadBuffer;
+		std::vector<Uint8>* machineThreadBuffer;
 	};
 }
