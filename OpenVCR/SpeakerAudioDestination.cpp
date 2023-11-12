@@ -6,15 +6,16 @@ using namespace OpenVCR;
 SpeakAudioDestination::SpeakAudioDestination(const std::string& givenName) : AudioDevice(givenName)
 {
 	this->deviceID = 0;
-	this->feedLocation = 0;
-	this->audioBuffer = nullptr;
-	this->audioBufferSize = 0;
 	this->deviceSubStr = new std::string();
+	this->machineThreadBuffer = new std::vector<Uint8>();
+	this->audioStream = nullptr;
+	this->playbackPosition = 0;
 }
 
 /*virtual*/ SpeakAudioDestination::~SpeakAudioDestination()
 {
 	delete this->deviceSubStr;
+	delete this->machineThreadBuffer;
 }
 
 /*static*/ SpeakAudioDestination* SpeakAudioDestination::Create(const std::string& name)
@@ -38,19 +39,12 @@ SpeakAudioDestination::SpeakAudioDestination(const std::string& givenName) : Aud
 	AudioDevice* audioDevice = machine->FindIODevice<AudioDevice>(*this->sourceName);
 	if (!audioDevice)
 	{
-		error.Add("Can't power-on speak audio destination without source audio device.");
+		error.Add("Can't power-on speaker audio destination without source audio device.");
 		return false;
 	}
 
-	this->audioBuffer = audioDevice->GetSampleData(this->audioBufferSize);
-	if (!this->audioBuffer || this->audioBufferSize == 0)
-	{
-		error.Add("No audio buffer to use.");
-		return false;
-	}
-
-	::memcpy(&this->audioSpec, audioDevice->GetAudioSpec(), sizeof(SDL_AudioSpec));
-
+	SDL_AudioSpec* sourceSpec = audioDevice->GetAudioSpec();
+	::memcpy(&this->audioSpec, sourceSpec, sizeof(SDL_AudioSpec));
 	this->audioSpec.callback = &SpeakAudioDestination::AudioCallbackEntry;
 	this->audioSpec.userdata = this;
 
@@ -72,14 +66,27 @@ SpeakAudioDestination::SpeakAudioDestination(const std::string& givenName) : Aud
 		}
 	}
 
-	SDL_AudioSpec obtainedSpec;
-	this->deviceID = SDL_OpenAudioDevice(audioDeviceName, 0, &this->audioSpec, &obtainedSpec, 0);
+	this->deviceID = SDL_OpenAudioDevice(audioDeviceName, 0, sourceSpec, &this->audioSpec, SDL_AUDIO_ALLOW_ANY_CHANGE);
 	if (this->deviceID == 0)
 	{
 		error.Add(std::format("Failed to open audio device: {}", SDL_GetError()));
 		return false;
 	}
 
+	this->audioStream = SDL_NewAudioStream(
+		sourceSpec->format,
+		sourceSpec->channels,
+		sourceSpec->freq,
+		this->audioSpec.format,
+		this->audioSpec.channels,
+		this->audioSpec.freq);
+	if (!this->audioStream)
+	{
+		error.Add(std::format("Failed to create audio stream: {}", SDL_GetError()));
+		return false;
+	}
+
+	this->playbackPosition = 0;
 	SDL_PauseAudioDevice(this->deviceID, 0);
 	return true;
 }
@@ -92,6 +99,12 @@ SpeakAudioDestination::SpeakAudioDestination(const std::string& givenName) : Aud
 		this->deviceID = 0;
 	}
 
+	if (this->audioStream)
+	{
+		SDL_FreeAudioStream(this->audioStream);
+		this->audioStream = nullptr;
+	}
+
 	return true;
 }
 
@@ -102,13 +115,24 @@ void SpeakAudioDestination::SetDeviceSubString(const std::string& deviceSubStr)
 
 /*virtual*/ bool SpeakAudioDestination::MoveData(Machine* machine, Error& error)
 {
-	if (machine->GetDisposition() == Machine::Disposition::PLACE)
+	AudioDevice* audioDevice = machine->FindIODevice<AudioDevice>(*this->sourceName);
+	if (!audioDevice)
 	{
-		double position = machine->GetPosition();
-
-		// TODO: Correct our feedLocation if we've strayed too much from the position.
-		//       How much is "too much" will depend on a preset tolerance value.
+		error.Add("Can't move data to speaker audio destination without source audio device.");
+		return false;
 	}
+
+	if (!audioDevice->IsComplete())
+		return true;
+
+	// TODO: A volume control could/should be implemented using an audio filter put into the graph.
+
+	this->machineThreadBuffer->clear();
+	audioDevice->GetSampleData(*this->machineThreadBuffer);
+
+	SDL_LockAudioDevice(this->deviceID);
+	SDL_AudioStreamPut(this->audioStream, this->machineThreadBuffer->data(), (int)this->machineThreadBuffer->size());
+	SDL_UnlockAudioDevice(this->deviceID);
 
 	this->complete = true;
 	return true;
@@ -116,23 +140,28 @@ void SpeakAudioDestination::SetDeviceSubString(const std::string& deviceSubStr)
 
 void SpeakAudioDestination::AudioCallback(Uint8* buffer, int length)
 {
-	// TODO: Factor in volume multiplier.
+	int numBytesGotten = SDL_AudioStreamGet(this->audioStream, buffer, length);
+	for (int i = numBytesGotten; i < length; i++)
+		buffer[i] = this->audioSpec.silence;
 
-	for (int i = 0; i < length; i++)
-	{
-		Uint8 byte = 0;
-		int j = this->feedLocation + i;
-		if (j < (signed)this->audioBufferSize)
-			byte = this->audioBuffer[j];
-
-		buffer[i] = byte;
-	}
-
-	this->feedLocation += length;
+	this->playbackPosition += numBytesGotten;
 }
 
 /*static*/ void SDLCALL SpeakAudioDestination::AudioCallbackEntry(void* userData, Uint8* buffer, int length)
 {
 	auto speakerAudioDestination = static_cast<SpeakAudioDestination*>(userData);
 	speakerAudioDestination->AudioCallback(buffer, length);
+}
+
+/*virtual*/ Uint32 SpeakAudioDestination::GetPlaybackPosition() const
+{
+	return this->playbackPosition;
+}
+
+/*virtual*/ void SpeakAudioDestination::SetPlaybackPosition(Uint32 playbackPosition)
+{
+	SDL_LockAudioDevice(this->deviceID);
+	this->playbackPosition = playbackPosition;
+	SDL_AudioStreamClear(this->audioStream);
+	SDL_UnlockAudioDevice(this->deviceID);
 }

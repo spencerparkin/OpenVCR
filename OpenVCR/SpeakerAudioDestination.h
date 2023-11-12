@@ -16,6 +16,8 @@ namespace OpenVCR
 		virtual bool PowerOff(Machine* machine, Error& error) override;
 		virtual bool MoveData(Machine* machine, Error& error) override;
 		virtual int GetSortKey() const override;
+		virtual Uint32 GetPlaybackPosition() const override;
+		virtual void SetPlaybackPosition(Uint32 playbackPosition) override;
 
 		void SetDeviceSubString(const std::string& deviceSubStr);
 
@@ -27,8 +29,8 @@ namespace OpenVCR
 
 		std::string* deviceSubStr;
 		SDL_AudioDeviceID deviceID;
-		Uint32 feedLocation;
-		Uint8* audioBuffer;
-		Uint32 audioBufferSize;
+		std::vector<Uint8>* machineThreadBuffer;
+		SDL_AudioStream* audioStream;
+		Uint32 playbackPosition;
 	};
 }

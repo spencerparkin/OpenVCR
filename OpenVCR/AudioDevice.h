@@ -12,9 +12,10 @@ namespace OpenVCR
 		AudioDevice(const std::string& givenName);
 		virtual ~AudioDevice();
 
-		virtual Uint8* GetSampleData(Uint32& size);
 		virtual bool GetSampleData(std::vector<Uint8>& sampleBuffer);
 		virtual SDL_AudioSpec* GetAudioSpec();
+		virtual Uint32 GetPlaybackPosition() const;
+		virtual void SetPlaybackPosition(Uint32 playbackPosition);
 
 	protected:
 		SDL_AudioSpec audioSpec;
