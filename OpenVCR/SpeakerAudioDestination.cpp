@@ -66,6 +66,10 @@ SpeakAudioDestination::SpeakAudioDestination(const std::string& givenName) : Aud
 		}
 	}
 
+	// TODO: The units of our playbackPosition needs to be in terms of samples, not bytes, because
+	//       samples, I believe, are a format-independent measure of how far along the source buffer
+	//       we are.  So for example, 16-bit signed integer audio converted to 32-bit floating point
+	//       audio will be a different size, but the number of samples should be the same.
 	this->deviceID = SDL_OpenAudioDevice(audioDeviceName, 0, sourceSpec, &this->audioSpec, SDL_AUDIO_ALLOW_ANY_CHANGE);
 	if (this->deviceID == 0)
 	{
