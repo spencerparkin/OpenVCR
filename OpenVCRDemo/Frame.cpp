@@ -201,6 +201,7 @@ void Frame::OnSetupMachine(wxCommandEvent& event)
 			windowVideoDestination->SetWindowHandle(this->renderControl->GetHWND());
 			windowVideoDestination->SetSourceName(fileVideoSource->GetName());
 
+			wxMessageBox("Now setup to replay video file!", "Success", wxOK | wxICON_INFORMATION, this);
 			break;
 		}
 		case ID_SetupToCaptureAudio:
@@ -230,6 +231,7 @@ void Frame::OnSetupMachine(wxCommandEvent& event)
 			fileAudioDestination->SetSourceName(micAudioSource->GetName());
 			fileAudioDestination->SetAudioFilePath((const char*)saveFileDialog.GetPath().c_str());
 
+			wxMessageBox("Now setup to capture audio and dump to file!", "Success", wxOK | wxICON_INFORMATION, this);
 			break;
 		}
 		case ID_SetupToReplayAudio:
@@ -256,7 +258,7 @@ void Frame::OnSetupMachine(wxCommandEvent& event)
 				return;
 			}
 
-			volumeFilter->SetVolume(0.01);
+			volumeFilter->SetVolume(0.9);
 			volumeFilter->SetSourceName(fileAudioSource->GetName());
 
 			auto speakerAudioDestination = wxGetApp().machine.AddIODevice<OpenVCR::SpeakerAudioDestination>("audio_destination", error);
@@ -271,6 +273,7 @@ void Frame::OnSetupMachine(wxCommandEvent& event)
 
 			fileAudioSource->SetAudioSinkName(speakerAudioDestination->GetName());
 
+			wxMessageBox("Now setup to replay audio file!", "Success", wxOK | wxICON_INFORMATION, this);
 			break;
 		}
 	}

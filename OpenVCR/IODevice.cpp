@@ -20,11 +20,13 @@ IODevice::IODevice(const std::string& givenName)
 
 /*virtual*/ bool IODevice::PowerOn(Machine* machine, Error& error)
 {
+	this->poweredOn = true;
 	return true;
 }
 
 /*virtual*/ bool IODevice::PowerOff(Machine* machine, Error& error)
 {
+	this->poweredOn = false;
 	return true;
 }
 
