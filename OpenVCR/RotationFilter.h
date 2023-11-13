@@ -1,17 +1,23 @@
 #pragma once
 
-#include "FrameFilter.h"
+#include "VideoDevice.h"
 
 namespace OpenVCR
 {
-	class OPEN_VCR_API RotationFilter : public FrameFilter
+	class OPEN_VCR_API RotationFilter : public VideoDevice
 	{
 	public:
-		RotationFilter();
+		RotationFilter(const std::string& givenName);
 		virtual ~RotationFilter();
 
-		virtual bool Filter(Frame& inputFrame, Frame& outputFrame, Error& error) override;
+		static RotationFilter* Create(const std::string& name);
 
+		virtual bool MoveData(Machine* machine, Error& error) override;
+
+		void SetRotationAngle(double givenRotationAngleDegrees) { this->rotationAngleDegrees = givenRotationAngleDegrees; }
+		double GetRotationAngle() const { return this->rotationAngleDegrees; }
+
+	private:
 		double rotationAngleDegrees;
 	};
 }

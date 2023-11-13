@@ -1,28 +1,31 @@
 #pragma once
 
-#include "VideoSource.h"
+#include "VideoDevice.h"
 #include <opencv2/videoio.hpp>
 
 namespace OpenVCR
 {
-	class OPEN_VCR_API FileVideoSource : public VideoSource
+	class OPEN_VCR_API FileVideoSource : public VideoDevice
 	{
 	public:
-		FileVideoSource();
+		FileVideoSource(const std::string& givenName);
 		virtual ~FileVideoSource();
+
+		static FileVideoSource* Create(const std::string& name);
 
 		void SetVideoFilePath(const std::string& videoFilePath);
 		const std::string& GetVideoFilePath();
 
-		virtual bool PowerOn(Error& error) override;
-		virtual bool PowerOff(Error& error) override;
-		virtual bool GetFrameCount(long& frameCount, Error& error) override;
-		virtual bool GetFrameNumber(long& frameNumber, Error& error) override;
-		virtual bool GetFrame(Frame& frame, long i, Error& error) override;
-		virtual bool GetNextFrame(Frame& frame, Error& error) override;
+		bool GetCurrentFrameNumber(long& frameNumber, Error& error);
+
+		virtual bool PowerOn(Machine* machine, Error& error) override;
+		virtual bool PowerOff(Machine* machine, Error& error) override;
+		virtual bool MoveData(Machine* machine, Error& error) override;
+		virtual bool GetFrameSize(cv::Size& frameSize, Error& error) override;
+		virtual bool GetFrameRate(double& frameRate, Error& error) override;
 
 	private:
-
+		cv::VideoCapture* videoCapture;
 		std::string* videoFilePath;
 		long frameCount;
 	};

@@ -1,13 +1,13 @@
 #include "WindowVideoDestination.h"
+#include "Machine.h"
 #include "Error.h"
-#include "Frame.h"
 #include <opencv2/core/directx.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
 
 using namespace OpenVCR;
 
-WindowVideoDestination::WindowVideoDestination()
+WindowVideoDestination::WindowVideoDestination(const std::string& givenName) : VideoDevice(givenName)
 {
 	this->windowHandle = nullptr;
     this->windowWidth = 0;
@@ -23,6 +23,11 @@ WindowVideoDestination::WindowVideoDestination()
 
 /*virtual*/ WindowVideoDestination::~WindowVideoDestination()
 {
+}
+
+/*static*/ WindowVideoDestination* WindowVideoDestination::Create(const std::string& name)
+{
+    return new WindowVideoDestination(name);		// Allocate class in this DLL's heap!
 }
 
 void WindowVideoDestination::SetWindowHandle(HWND windowHandle)
@@ -85,10 +90,11 @@ WindowVideoDestination::RenderMode WindowVideoDestination::GetRenderMode()
     if (!this->CreateFrameTexture(error))
         return false;
 
+    this->poweredOn = true;
     return true;
 }
 
-/*virtual*/ bool WindowVideoDestination::PowerOff(Error& error)
+/*virtual*/ bool WindowVideoDestination::PowerOff(Machine* machine, Error& error)
 {
     if (this->frameTexture)
     {
@@ -124,6 +130,7 @@ WindowVideoDestination::RenderMode WindowVideoDestination::GetRenderMode()
     this->windowWidth = 0;
     this->windowHeight = 0;
 
+    this->poweredOn = false;
 	return true;
 }
 
@@ -251,11 +258,29 @@ bool WindowVideoDestination::CreateFrameTexture(Error& error)
     return true;
 }
 
-/*virtual*/ bool WindowVideoDestination::AddFrame(Frame& frame, Error& error)
+/*virtual*/ bool WindowVideoDestination::MoveData(Machine* machine, Error& error)
 {
+    VideoDevice* videoDevice = machine->FindIODevice<VideoDevice>(*this->sourceName);
+    if (!videoDevice)
+    {
+        error.Add(std::format("Window video destination failed to find video device with name \"{}\".", this->sourceName->c_str()));
+        return false;
+    }
+
+    // We can't do anything until our video source is complete.
+    if (!videoDevice->IsComplete())
+        return true;
+
+    cv::Mat* sourceFrame = videoDevice->GetFrameData();
+    if (!sourceFrame)
+    {
+        error.Add("Video source did not have any frame data for us.");
+        return false;
+    }
+
     // We need the frame in a format where we can copy it directly into the direct-X texture resource.
     cv::Mat frameRGBA;
-    cv::cvtColor(*frame.data, frameRGBA, cv::COLOR_BGR2RGBA);
+    cv::cvtColor(*sourceFrame, frameRGBA, cv::COLOR_BGR2RGBA);
 
     // Map the dirct-X texture into memory.
     UINT subResource = ::D3D11CalcSubresource(0, 0, 1);
@@ -281,6 +306,7 @@ bool WindowVideoDestination::CreateFrameTexture(Error& error)
         return false;
     }
 
+    this->complete = true;
 	return true;
 }
 

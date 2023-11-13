@@ -14,21 +14,27 @@
     <Filter Include="Sources\VideoFilters">
       <UniqueIdentifier>{443a7681-bea1-4aac-bec0-0de59af4eb86}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\AudioSources">
+      <UniqueIdentifier>{cc232492-4db9-41e5-97d6-7184242c3e2a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\AudioDestinations">
+      <UniqueIdentifier>{65d70af5-95ea-41a3-8c4e-92f14fe9d619}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\VideoBlenders">
+      <UniqueIdentifier>{b6f4c802-3a98-4dae-9312-80e8de9db300}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\AudioFilters">
+      <UniqueIdentifier>{a11c5595-44e4-4c59-b142-80bc037240e1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\AudioMixers">
+      <UniqueIdentifier>{a7f57bfe-e2dc-46f6-bb8d-1e46c57ec0ff}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Machine.h">
       <Filter>Sources</Filter>
     </ClInclude>
     <ClInclude Include="Common.h">
-      <Filter>Sources</Filter>
-    </ClInclude>
-    <ClInclude Include="VideoSource.h">
-      <Filter>Sources</Filter>
-    </ClInclude>
-    <ClInclude Include="VideoDestination.h">
-      <Filter>Sources</Filter>
-    </ClInclude>
-    <ClInclude Include="Frame.h">
       <Filter>Sources</Filter>
     </ClInclude>
     <ClInclude Include="FileVideoSource.h">
@@ -49,24 +55,39 @@
     <ClInclude Include="RotationFilter.h">
       <Filter>Sources\VideoFilters</Filter>
     </ClInclude>
-    <ClInclude Include="FrameFilter.h">
-      <Filter>Sources</Filter>
-    </ClInclude>
     <ClInclude Include="CropFilter.h">
       <Filter>Sources\VideoFilters</Filter>
+    </ClInclude>
+    <ClInclude Include="IODevice.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="VideoDevice.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="AudioDevice.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="FileAudioSource.h">
+      <Filter>Sources\AudioSources</Filter>
+    </ClInclude>
+    <ClInclude Include="SpeakerAudioDestination.h">
+      <Filter>Sources\AudioDestinations</Filter>
+    </ClInclude>
+    <ClInclude Include="MicAudioSource.h">
+      <Filter>Sources\AudioSources</Filter>
+    </ClInclude>
+    <ClInclude Include="FileAudioDestination.h">
+      <Filter>Sources\AudioDestinations</Filter>
+    </ClInclude>
+    <ClInclude Include="AudioFile.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="VolumeFilter.h">
+      <Filter>Sources\AudioFilters</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Machine.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="Frame.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="VideoDestination.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="VideoSource.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="FileVideoSource.cpp">
@@ -84,14 +105,35 @@
     <ClCompile Include="FileVideoDestination.cpp">
       <Filter>Sources\VideoDestinations</Filter>
     </ClCompile>
-    <ClCompile Include="FrameFilter.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
     <ClCompile Include="RotationFilter.cpp">
       <Filter>Sources\VideoFilters</Filter>
     </ClCompile>
     <ClCompile Include="CropFilter.cpp">
       <Filter>Sources\VideoFilters</Filter>
+    </ClCompile>
+    <ClCompile Include="IODevice.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="AudioDevice.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="VideoDevice.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="FileAudioSource.cpp">
+      <Filter>Sources\AudioSources</Filter>
+    </ClCompile>
+    <ClCompile Include="SpeakerAudioDestination.cpp">
+      <Filter>Sources\AudioDestinations</Filter>
+    </ClCompile>
+    <ClCompile Include="FileAudioDestination.cpp">
+      <Filter>Sources\AudioDestinations</Filter>
+    </ClCompile>
+    <ClCompile Include="MicAudioSource.cpp">
+      <Filter>Sources\AudioSources</Filter>
+    </ClCompile>
+    <ClCompile Include="VolumeFilter.cpp">
+      <Filter>Sources\AudioFilters</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

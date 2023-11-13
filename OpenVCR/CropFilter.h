@@ -1,20 +1,31 @@
 #pragma once
 
-#include "FrameFilter.h"
+#include "VideoDevice.h"
 
 namespace OpenVCR
 {
-	class OPEN_VCR_API CropFilter : public FrameFilter
+	class OPEN_VCR_API CropFilter : public VideoDevice
 	{
 	public:
-		CropFilter();
+		CropFilter(const std::string& givenName);
 		virtual ~CropFilter();
 
-		virtual bool Filter(Frame& inputFrame, Frame& outputFrame, Error& error) override;
+		static CropFilter* Create(const std::string& name);
 
-		int leftCrop;
-		int rightCrop;
-		int topCrop;
-		int bottomCrop;
+		virtual bool MoveData(Machine* machine, Error& error) override;
+
+		struct CropParams
+		{
+			int leftCrop;
+			int rightCrop;
+			int topCrop;
+			int bottomCrop;
+		};
+
+		void SetCropParams(const CropParams& cropParams) { this->cropParams = cropParams; }
+		const CropParams& GetCropParams() const { return this->cropParams; }
+
+	private:
+		CropParams cropParams;
 	};
 }

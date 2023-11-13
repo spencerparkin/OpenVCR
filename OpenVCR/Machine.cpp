@@ -1,31 +1,57 @@
 #include "Machine.h"
 #include "Error.h"
-#include "VideoSource.h"
-#include "VideoDestination.h"
-#include "FrameFilter.h"
+#include "IODevice.h"
 #include <opencv2/core/utils/logger.hpp>
+#include <SDL.h>
 
 using namespace OpenVCR;
 
 Machine::Machine()
 {
 	this->isPoweredOn = false;
-	this->videoSource = nullptr;
-	this->videoDestinationArray = new std::vector<VideoDestination*>();
-	this->frameFilterArray = new std::vector<FrameFilter*>();
-	this->lastClockTime = 0;
-	this->pullMethod = SourcePullMethod::GET_NEXT_FRAME_QUICKEST;
-	this->pullRatePPS = 30.0;
-	this->framePosition = 0.0;
-	this->frameRateFPP = 1.0;
-	this->frameDirty = true;
-	this->frameCleanTimeRemaining = 0.0;
+	this->ioDeviceMap = new std::map<std::string, IODevice*>();
+	this->disposition = Disposition::PULL;
+	this->position = 0.0;
 }
 
 /*virtual*/ Machine::~Machine()
 {
-	delete this->videoDestinationArray;
-	delete this->frameFilterArray;
+	delete this->ioDeviceMap;
+}
+
+/*static*/ bool Machine::Setup(Error& error)
+{
+	int result = SDL_Init(SDL_INIT_AUDIO);
+	if (result != 0)
+	{
+		error.Add(std::format("Failed to initialize SDL audo subsystem: {}", SDL_GetError()));
+		return false;
+	}
+
+	return true;
+}
+
+/*static*/ bool Machine::Shutdown(Error& error)
+{
+	SDL_QuitSubSystem(SDL_INIT_AUDIO);
+	SDL_Quit();
+
+	return true;
+}
+
+bool Machine::DeleteAllIODevices(Error& error)
+{
+	if (this->isPoweredOn)
+	{
+		error.Add("Can't delete all IO devices while machine is powered-on.");
+		return false;
+	}
+
+	for (auto pair : *this->ioDeviceMap)
+		delete pair.second;
+
+	this->ioDeviceMap->clear();
+	return true;
 }
 
 bool Machine::IsOn()
@@ -41,51 +67,61 @@ bool Machine::PowerOn(Error& error)
 		return false;
 	}
 
-	if (!this->videoSource)
-	{
-		error.Add("No video source configured.");
-		return false;
-	}
-
 #if defined _DEBUG
 	cv::utils::logging::setLogLevel(cv::utils::logging::LOG_LEVEL_VERBOSE);
 #else
 	cv::utils::logging::setLogLevel(cv::utils::logging::LOG_LEVEL_SILENT);
 #endif
 
-	if (!this->videoSource->PowerOn(error))
+	// Power on all the IO devices in the correct order.
+	int powerOnCount = 0;
+	while (powerOnCount < this->ioDeviceMap->size())
 	{
-		error.Add("Video source power-on failed.");
-		return false;
-	}
+		int thisPassPowerOnCount = 0;
 
-	for (VideoDestination* videoDestination : *this->videoDestinationArray)
-	{
-		if (!videoDestination->PowerOn(this, error))
+		for(auto pair : *this->ioDeviceMap)
 		{
-			error.Add("Video destination power-on failed.");
+			IODevice* ioDevice = pair.second;
+			if (!ioDevice->IsPoweredOn())
+			{
+				IODevice* sourceDevice = this->FindIODevice<IODevice>(ioDevice->GetSourceName());
+				if (!sourceDevice || sourceDevice->IsPoweredOn())
+				{
+					if (ioDevice->PowerOn(this, error))
+						thisPassPowerOnCount++;
+					else
+					{
+						error.Add("IO device power-on failed.");
+						return false;
+					}
+				}
+			}
+		}
+
+		if (thisPassPowerOnCount == 0)
+		{
+			error.Add("Full power-on pass made with no power-on success.");
 			return false;
 		}
+
+		powerOnCount += thisPassPowerOnCount;
 	}
 
-	this->lastClockTime = ::clock();
-	this->framePosition = 0.0;
-	this->frameDirty = true;
-	this->frameCleanTimeRemaining = 0.0;
 	this->isPoweredOn = true;
 	return true;
 }
 
 bool Machine::PowerOff(Error& error)
 {
-	if (this->videoSource)
-		this->videoSource->PowerOff(error);
-
-	for (VideoDestination* videoDestination : *this->videoDestinationArray)
-		videoDestination->PowerOff(error);
+	// We should be able topower everything off in any order.
+	for (auto pair : *this->ioDeviceMap)
+	{
+		IODevice* ioDevice = pair.second;
+		ioDevice->PowerOff(this, error);
+	}
 
 	this->isPoweredOn = false;
-	return true;
+	return error.GetCount() == 0;
 }
 
 bool Machine::Tick(Error& error)
@@ -96,276 +132,100 @@ bool Machine::Tick(Error& error)
 		return false;
 	}
 
-	if (!this->videoSource)
+	for (auto pair : *this->ioDeviceMap)
 	{
-		error.Add("No frame source configured!");
-		return false;
-	}
-
-	bool pushFrame = false;
-
-	if (this->pullMethod == SourcePullMethod::GET_NEXT_FRAME_THROTTLED ||
-		this->pullMethod == SourcePullMethod::SET_FRAME_POS_THROTTLED)
-	{
-		clock_t currentClockTime = ::clock();
-		clock_t elapsedClockTime = currentClockTime - this->lastClockTime;
-		double elapsedTimeSeconds = double(elapsedClockTime) / double(CLOCKS_PER_SEC);
-		this->frameCleanTimeRemaining -= elapsedTimeSeconds;
-		if (this->frameCleanTimeRemaining <= 0.0)
+		IODevice* ioDevice = pair.second;
+		if (!ioDevice->PreTick(this, error))
 		{
-			double secondsPerPull = 1.0 / this->pullRatePPS;
-			while (this->frameCleanTimeRemaining <= 0.0)
-				this->frameCleanTimeRemaining += secondsPerPull;
-			this->frameDirty = true;
+			error.Add("Pre-tick on IO device failed.");
+			return false;
 		}
 	}
 
-	if (this->pullMethod == SourcePullMethod::GET_NEXT_FRAME_QUICKEST ||
-		(this->frameDirty && this->pullMethod == SourcePullMethod::GET_NEXT_FRAME_THROTTLED))
+	std::list<IODevice*> ioDeviceQueue;
+	for (auto pair : *this->ioDeviceMap)
+		ioDeviceQueue.push_back(pair.second);
+
+	int deferCount = 0;
+	while (ioDeviceQueue.size() > 0)
 	{
-		if (!this->videoSource->GetNextFrame(this->frame, error))
+		std::list<IODevice*>::iterator iter = ioDeviceQueue.begin();
+		IODevice* ioDevice = *iter;
+		ioDeviceQueue.erase(iter);
+
+		if (!ioDevice->MoveData(this, error))
 		{
-			error.Add("Failed to get next frame.");
+			error.Add("IO device failed when trying to move data.");
 			return false;
 		}
 
-		pushFrame = true;
-	}
-	else if (this->pullMethod == SourcePullMethod::SET_FRAME_POS_QUICKEST ||
-		(this->frameDirty &&
-			(this->pullMethod == SourcePullMethod::SET_FRAME_POS_THROTTLED ||
-				this->pullMethod == SourcePullMethod::SET_FRAME_POS_MANUAL)))
-	{
-		long i = (long)::floor(this->framePosition);
-		if (!this->videoSource->GetFrame(this->frame, i, error))
-		{
-			error.Add(std::format("Failed to get frame {}.", i));
-			return false;
-		}
-
-		if (this->pullMethod != SourcePullMethod::SET_FRAME_POS_MANUAL)
-			this->framePosition += this->frameRateFPP;
+		if (ioDevice->IsComplete())
+			deferCount = 0;
 		else
-			this->frameDirty = false;
-
-		pushFrame = true;
-	}
-
-	if (this->pullMethod != SourcePullMethod::SET_FRAME_POS_MANUAL)
-		this->frameDirty = false;
-
-	if (pushFrame)
-	{
-		if (this->frame.data->empty())
 		{
-			error.Add("Can't push empty frame.");
+			ioDeviceQueue.push_back(ioDevice);
+			deferCount++;
+		}
+
+		if (deferCount == ioDeviceQueue.size() && deferCount > 0)
+		{
+			error.Add("All IO devices are deferring the movement of data.  Infinite loop detected.");
 			return false;
 		}
+	}
 
-		// Filter the generated frame through all the filters, if any.
-		Frame otherFrame;
-		Frame* doubleBuffer[2] = { &this->frame, &otherFrame };
-		int i = 0;
-		for (FrameFilter* frameFilter : *this->frameFilterArray)
+	for (auto pair : *this->ioDeviceMap)
+	{
+		IODevice* ioDevice = pair.second;
+		if (!ioDevice->PostTick(this, error))
 		{
-			Frame* inputFrame = doubleBuffer[i];
-			Frame* outputFrame = doubleBuffer[1 - i];
-
-			if (!frameFilter->Filter(*inputFrame, *outputFrame, error))
-			{
-				error.Add("Filter \"" + *frameFilter->name + "\" failed!");
-				return false;
-			}
-
-			i = 1 - i;
-		}
-
-		// Send the final frame to all the video destinations.
-		Frame* finalFrame = doubleBuffer[i];
-		for (VideoDestination* videoDestination : *this->videoDestinationArray)
-			if (!videoDestination->AddFrame(*finalFrame, error))
-				return false;
-	}
-
-	return true;
-}
-
-bool Machine::SetVideoSource(VideoSource* videoSource, bool deleteToo, Error& error)
-{
-	if (this->isPoweredOn)
-	{
-		error.Add("Can't configure video source when already powered on.");
-		return false;
-	}
-
-	if (this->videoSource)
-	{
-		if (deleteToo)
-			delete this->videoSource;
-	}
-
-	this->videoSource = videoSource;
-	return true;
-}
-
-VideoSource* Machine::GetVideoSource()
-{
-	return this->videoSource;
-}
-
-bool Machine::AddVideoDestination(VideoDestination* videoDestination, Error& error)
-{
-	if (this->isPoweredOn)
-	{
-		error.Add("Can't configure video destination when already powered on.");
-		return false;
-	}
-
-	this->videoDestinationArray->push_back(videoDestination);
-	return true;
-}
-
-VideoDestination* Machine::GetVideoDestination(int i)
-{
-	if (0 <= i && i < (int)this->videoDestinationArray->size())
-		return (*this->videoDestinationArray)[i];
-
-	return nullptr;
-}
-
-int Machine::GetNumVideoDestination()
-{
-	return (int)this->videoDestinationArray->size();
-}
-
-bool Machine::ClearAllVideoDestinations(bool deleteToo, Error& error)
-{
-	if (this->isPoweredOn)
-	{
-		error.Add("Can't clear video destination configurationw hen already powered on.");
-		return false;
-	}
-
-	if (deleteToo)
-		for (VideoDestination* videoDestion : *this->videoDestinationArray)
-			delete videoDestion;
-
-	this->videoDestinationArray->clear();
-	return true;
-}
-
-bool Machine::AddFrameFilter(FrameFilter* frameFilter, Error& error)
-{
-	FrameFilter* existingFilter = this->FindFrameFilter(*frameFilter->name);
-	if (existingFilter)
-	{
-		error.Add("There already exists a filter with name: " + *frameFilter->name);
-		return false;
-	}
-
-	this->frameFilterArray->push_back(frameFilter);
-	return true;
-}
-
-bool Machine::RemoveFrameFilter(const std::string& frameFilterName, bool deleteToo, Error& error)
-{
-	std::vector<FrameFilter*>::iterator iter;
-	FrameFilter* frameFilter = this->FindFrameFilter(frameFilterName, &iter);
-	if (!frameFilter)
-	{
-		error.Add("Did not find frame filter with name: " + frameFilterName);
-		return false;
-	}
-
-	if (deleteToo)
-		delete frameFilter;
-
-	this->frameFilterArray->erase(iter);
-	return true;
-}
-
-FrameFilter* Machine::FindFrameFilter(const std::string& frameFilterName, std::vector<FrameFilter*>::iterator* foundIter /*= nullptr*/)
-{
-	for (std::vector<FrameFilter*>::iterator iter = this->frameFilterArray->begin(); iter != this->frameFilterArray->end(); iter++)
-	{
-		FrameFilter* frameFilter = *iter;
-		if (*frameFilter->name == frameFilterName)
-		{
-			if (foundIter)
-				*foundIter = iter;
-
-			return frameFilter;
+			error.Add("Post-tick on IO device failed.");
+			return false;
 		}
 	}
 
-	return nullptr;
-}
-
-bool Machine::ClearAllFrameFilters(bool deleteToo, Error& error)
-{
-	if (deleteToo)
-		for (FrameFilter* frameFilter : *this->frameFilterArray)
-			delete frameFilter;
-
-	this->frameFilterArray->clear();
 	return true;
-}
-
-void Machine::SetPullRate(double pullRate)
-{
-	this->pullRatePPS = pullRate;
-}
-
-double Machine::GetPullRate() const
-{
-	return this->pullRatePPS;
-}
-
-void Machine::SetFrameRate(double frameRateFPP)
-{
-	this->frameRateFPP = frameRateFPP;
-}
-
-double Machine::GetFrameRate() const
-{
-	return this->frameRateFPP;
-}
-
-void Machine::SetFramePosition(double framePosition)
-{
-	this->framePosition = framePosition;
-	this->frameDirty = true;
-}
-
-double Machine::GetFramePosition() const
-{
-	return this->framePosition;
-}
-
-void Machine::SetPullMethod(SourcePullMethod sourcePullMethod)
-{
-	this->pullMethod = sourcePullMethod;
-}
-
-Machine::SourcePullMethod Machine::GetPullMethod() const
-{
-	return this->pullMethod;
 }
 
 void Machine::GetStatus(std::string& statusMsg)
 {
-	if (!this->videoSource)
-		statusMsg = "No video source.";
-	else
+	statusMsg = "";
+
+	for (auto pair : *this->ioDeviceMap)
 	{
-		Error error;
+		IODevice* ioDevice = pair.second;
 
-		long frameCount = 0;
-		this->videoSource->GetFrameCount(frameCount, error);
-
-		long frameNumber = 0;
-		this->videoSource->GetFrameNumber(frameNumber, error);
-
-		statusMsg = std::format("Frame: {}/{}", frameNumber, frameCount);
+		std::string deviceMsg = ioDevice->GetStatusMessage();
+		if (deviceMsg.length() > 0)
+		{
+			if (statusMsg.length() > 0)
+				statusMsg += " / ";
+			statusMsg += deviceMsg;
+		}
 	}
+}
+
+Machine::Disposition Machine::GetDisposition() const
+{
+	return this->disposition;
+}
+
+void Machine::SetDisposition(Disposition disposition)
+{
+	this->disposition = disposition;
+}
+
+void Machine::SetPosition(double position)
+{
+	this->position = position;
+
+	if (this->position < 0.0)
+		this->position = 0.0;
+	else if (this->position > 1.0)
+		this->position = 1.0;
+}
+
+double Machine::GetPosition() const
+{
+	return this->position;
 }

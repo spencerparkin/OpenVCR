@@ -1,42 +1,62 @@
 #include "CropFilter.h"
-#include "Frame.h"
+#include "Machine.h"
 #include "Error.h"
 #include <opencv2/imgproc/imgproc.hpp>
 
 using namespace OpenVCR;
 
-CropFilter::CropFilter()
+CropFilter::CropFilter(const std::string& givenName) : VideoDevice(givenName)
 {
-	this->leftCrop = 0;
-	this->rightCrop = 0;
-	this->topCrop = 0;
-	this->bottomCrop = 0;
+	this->cropParams = CropParams{ 0, 0, 0, 0 };
 }
 
 /*virtual*/ CropFilter::~CropFilter()
 {
 }
 
-/*virtual*/ bool CropFilter::Filter(Frame& inputFrame, Frame& outputFrame, Error& error)
+/*static*/ CropFilter* CropFilter::Create(const std::string& name)
 {
-	int width = inputFrame.data->size().width - this->leftCrop - this->rightCrop;
+	return new CropFilter(name);		// Allocate class in this DLL's heap!
+}
+
+/*virtual*/ bool CropFilter::MoveData(Machine* machine, Error& error)
+{
+	VideoDevice* videoDevice = machine->FindIODevice<VideoDevice>(*this->sourceName);
+	if (!videoDevice)
+	{
+		error.Add(std::format("Crop filter failed to find video device of name \"{}\".", this->sourceName->c_str()));
+		return false;
+	}
+
+	if (!videoDevice->IsComplete())
+		return true;
+
+	cv::Mat* sourceFrame = videoDevice->GetFrameData();
+	if (!sourceFrame)
+	{
+		error.Add("Completed source device did not have frame for us.");
+		return false;
+	}
+
+	int width = sourceFrame->size().width - this->cropParams.leftCrop - this->cropParams.rightCrop;
 	if (width <= 0)
 	{
 		error.Add("Crop killed all width!");
 		return false;
 	}
 
-	int height = inputFrame.data->size().height - this->topCrop - this->bottomCrop;
+	int height = sourceFrame->size().height - this->cropParams.topCrop - this->cropParams.bottomCrop;
 	if (height <= 0)
 	{
 		error.Add("Crop killed all height!");
 		return false;
 	}
 
-	cv::Rect subRegion(this->leftCrop, this->topCrop, width, height);
-	cv::Mat subFrame = (*inputFrame.data)(subRegion);
+	cv::Rect subRegion(this->cropParams.leftCrop, this->cropParams.topCrop, width, height);
+	cv::Mat subFrame = (*sourceFrame)(subRegion);
 
-	cv::resize(subFrame, *outputFrame.data, inputFrame.data->size());
+	cv::resize(subFrame, *this->frame, sourceFrame->size());
 
+	this->complete = true;
 	return true;
 }

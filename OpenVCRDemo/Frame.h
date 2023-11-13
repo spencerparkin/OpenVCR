@@ -15,24 +15,19 @@ public:
 
 	enum
 	{
-		ID_SetFileVideoSource = wxID_HIGHEST,
-		ID_SetCameraVideoSource,
-		ID_AddFileVideoDestination,
-		ID_AddWindowVideoDestination,
-		ID_AddRotationFilter,
-		ID_AddCropFilter,
-		ID_ClearAllFilters,
+		ID_SetupToCaptureVideo,
+		ID_SetupToReplayVideo,
+		ID_SetupToCaptureAudio,
+		ID_SetupToReplayAudio,
 		ID_PowerOnMachine,
 		ID_PowerOffMachine,
+		ID_ScrubMode,
 		ID_About,
 		ID_Exit
 	};
 
+	void OnSetupMachine(wxCommandEvent& event);
 	void OnPowerMachine(wxCommandEvent& event);
-	void OnSetVideoSource(wxCommandEvent& event);
-	void OnAddVideoDestination(wxCommandEvent& event);
-	void OnAddFrameFilter(wxCommandEvent& event);
-	void OnClearAllFilters(wxCommandEvent& event);
 	void OnExit(wxCommandEvent& event);
 	void OnAbout(wxCommandEvent& event);
 	void OnUpdateUI(wxUpdateUIEvent& event);
@@ -43,6 +38,7 @@ public:
 	void OnThreadStatus(ThreadStatusEvent& event);
 	void OnSliderChanged(wxScrollEvent& event);
 	void OnResize(wxSizeEvent& event);
+	void OnScrubMode(wxCommandEvent& event);
 
 	void StartThread();
 	void StopThread();
@@ -52,4 +48,5 @@ public:
 	Thread* thread;
 	wxSlider* slider;
 	wxControl* renderControl;
+	bool scrubMode;
 };

@@ -1,23 +1,26 @@
 #include "FileVideoDestination.h"
 #include "Error.h"
 #include "Machine.h"
-#include "VideoSource.h"
 
 using namespace OpenVCR;
 
-FileVideoDestination::FileVideoDestination()
+FileVideoDestination::FileVideoDestination(const std::string& givenName) : VideoDevice(givenName)
 {
 	this->videoWriter = nullptr;
 	this->videoFilePath = new std::string();
-	this->frameRateFPS = 30.0;
-	this->encoderFourCC = 0;
 	this->frameSize = new cv::Size(0, 0);
+	this->frameRateFPS = 0.0;
 }
 
 /*virtual*/ FileVideoDestination::~FileVideoDestination()
 {
 	delete this->videoFilePath;
 	delete this->frameSize;
+}
+
+/*static*/ FileVideoDestination* FileVideoDestination::Create(const std::string& name)
+{
+	return new FileVideoDestination(name);		// Allocate class in this DLL's heap!
 }
 
 /*virtual*/ bool FileVideoDestination::PowerOn(Machine* machine, Error& error)
@@ -28,32 +31,38 @@ FileVideoDestination::FileVideoDestination()
 		return false;
 	}
 
-	cv::VideoCapture* videoCapture = nullptr;
-	VideoSource* videoSource = machine->GetVideoSource();
-	if (videoSource)
-		videoCapture = videoSource->GetVideoCapture();
-
-	if (this->frameSize->width == 0 && this->frameSize->height == 0 && videoCapture)
+	VideoDevice* videoDevice = machine->FindIODevice<VideoDevice>(*this->sourceName);
+	if (!videoDevice)
 	{
-		this->frameSize->width = (int)videoCapture->get(cv::CAP_PROP_FRAME_WIDTH);
-		this->frameSize->height = (int)videoCapture->get(cv::CAP_PROP_FRAME_HEIGHT);
-	}
-
-	if (this->frameSize->width == 0 && this->frameSize->height == 0)
-	{
-		error.Add("Could not resolve frame size.");
+		error.Add(std::format("File video destination can't find frame source with name \"{}\".", this->sourceName->c_str()));
 		return false;
 	}
 
-	//if (this->encoderFourCC == 0 && videoCapture)
-	//	this->encoderFourCC = (int)videoCapture->get(cv::CAP_PROP_FOURCC);
+	if (this->frameSize->width == 0 || this->frameSize->height == 0)
+	{
+		if (!videoDevice->GetFrameSize(*this->frameSize, error))
+		{
+			error.Add("Could not query source device for frame size.");
+			return false;
+		}
+	}
 
-	if (this->frameRateFPS == 0.0 && videoCapture)
-		this->frameRateFPS = videoCapture->get(cv::CAP_PROP_FPS);
+	if (this->frameRateFPS == 0.0)
+	{
+		if (!videoDevice->GetFrameRate(this->frameRateFPS, error))
+		{
+			error.Add("Could not query for source device frame-rate.");
+			return false;
+		}
+	}
+
+	int encoderFourCC = 0;
+	// TODO: Need this?
+	//encoderFourCC = (int)videoCapture->get(cv::CAP_PROP_FOURCC);
 
 	this->videoWriter = new cv::VideoWriter();
 	
-	if (!this->videoWriter->open(*this->videoFilePath, this->encoderFourCC, this->frameRateFPS, *this->frameSize))
+	if (!this->videoWriter->open(*this->videoFilePath, encoderFourCC, this->frameRateFPS, *this->frameSize))
 	{
 		error.Add("Failed to open (for writing) the file: " + *this->videoFilePath);
 		return false;
@@ -65,10 +74,11 @@ FileVideoDestination::FileVideoDestination()
 		return false;
 	}
 
+	this->poweredOn = true;
 	return true;
 }
 
-/*virtual*/ bool FileVideoDestination::PowerOff(Error& error)
+/*virtual*/ bool FileVideoDestination::PowerOff(Machine* machine, Error& error)
 {
 	if (this->videoWriter)
 	{
@@ -77,10 +87,22 @@ FileVideoDestination::FileVideoDestination()
 		this->videoWriter = nullptr;
 	}
 
+	this->poweredOn = false;
 	return true;
 }
 
-/*virtual*/ bool FileVideoDestination::AddFrame(Frame& frame, Error& error)
+void FileVideoDestination::SetFrameSize(int width, int height)
+{
+	this->frameSize->width = width;
+	this->frameSize->height = height;
+}
+
+void FileVideoDestination::SetFrameRate(double frameRateFPS)
+{
+	this->frameRateFPS = frameRateFPS;
+}
+
+/*virtual*/ bool FileVideoDestination::MoveData(Machine* machine, Error& error)
 {
 	if (!this->videoWriter)
 	{
@@ -88,12 +110,30 @@ FileVideoDestination::FileVideoDestination()
 		return false;
 	}
 
-	if (!this->suspendFrameWrites)
+	VideoDevice* videoDevice = machine->FindIODevice<VideoDevice>(*this->sourceName);
+	if (!videoDevice)
 	{
-		//this->videoWriter->write(*frame.data);
-		*this->videoWriter << *frame.data;
+		error.Add(std::format("File video destination failed to find source IO device with name \"{}\".", this->sourceName->c_str()));
+		return false;
 	}
 
+	if (!videoDevice->IsComplete())
+		return true;
+
+	cv::Mat* sourceFrame = videoDevice->GetFrameData();
+	if (!sourceFrame)
+	{
+		error.Add("Completed source did not have any frame data for us.");
+		return false;
+	}
+
+	if (!this->suspendFrameWrites)
+	{
+		//this->videoWriter->write(*sourceFrame);
+		*this->videoWriter << *sourceFrame;
+	}
+
+	this->complete = true;
 	return true;
 }
 

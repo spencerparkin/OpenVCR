@@ -1,15 +1,17 @@
 #pragma once
 
-#include "VideoDestination.h"
+#include "VideoDevice.h"
 #include <d3d11.h>
 
 namespace OpenVCR
 {
-	class OPEN_VCR_API WindowVideoDestination : public VideoDestination
+	class OPEN_VCR_API WindowVideoDestination : public VideoDevice
 	{
 	public:
-		WindowVideoDestination();
+		WindowVideoDestination(const std::string& givenName);
 		virtual ~WindowVideoDestination();
+
+		static WindowVideoDestination* Create(const std::string& name);
 
 		void SetWindowHandle(HWND windowHandle);
 		HWND GetWindowHandle();
@@ -24,8 +26,8 @@ namespace OpenVCR
 		RenderMode GetRenderMode();
 
 		virtual bool PowerOn(Machine* machine, Error& error) override;
-		virtual bool PowerOff(Error& error) override;
-		virtual bool AddFrame(Frame& frame, Error& error) override;
+		virtual bool PowerOff(Machine* machine, Error& error) override;
+		virtual bool MoveData(Machine* machine, Error& error) override;
 
 		// Call this when the window size changes to update the swap-chain and backbuffer, etc.
 		bool WindowSizeChanged(Error& error);

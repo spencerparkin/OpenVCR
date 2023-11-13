@@ -5,8 +5,13 @@
 #include <CameraVideoSource.h>
 #include <FileVideoDestination.h>
 #include <WindowVideoDestination.h>
+#include <FileAudioSource.h>
+#include <SpeakerAudioDestination.h>
+#include <FileAudioDestination.h>
+#include <MicAudioSource.h>
 #include <RotationFilter.h>
 #include <CropFilter.h>
+#include <VolumeFilter.h>
 #include <Error.h>
 #include <wx/menu.h>
 #include <wx/msgdlg.h>
@@ -20,52 +25,50 @@
 Frame::Frame() : wxFrame(nullptr, wxID_ANY, "OpenVCR Demo", wxDefaultPosition, wxSize(512, 512))
 {
 	this->thread = nullptr;
+	this->scrubMode = false;
 
 	wxMenu* fileMenu = new wxMenu();
 	fileMenu->Append(new wxMenuItem(fileMenu, ID_PowerOnMachine, "Power On Machine"));
 	fileMenu->Append(new wxMenuItem(fileMenu, ID_PowerOffMachine, "Power Off Machine"));
 	fileMenu->AppendSeparator();
-	fileMenu->Append(new wxMenuItem(fileMenu, ID_SetFileVideoSource, "Set File Video Source"));
-	fileMenu->Append(new wxMenuItem(fileMenu, ID_SetCameraVideoSource, "Set Camera Video Source"));
+	fileMenu->Append(new wxMenuItem(fileMenu, ID_SetupToCaptureVideo, "Setup to Capture Video"));
+	fileMenu->Append(new wxMenuItem(fileMenu, ID_SetupToReplayVideo, "Setup to Replay Video"));
 	fileMenu->AppendSeparator();
-	fileMenu->Append(new wxMenuItem(fileMenu, ID_AddFileVideoDestination, "Add File Video Destination"));
-	fileMenu->Append(new wxMenuItem(fileMenu, ID_AddWindowVideoDestination, "Add Window Video Destination"));
-	fileMenu->AppendSeparator();
-	fileMenu->Append(new wxMenuItem(fileMenu, ID_AddRotationFilter, "Add Rotation Filter"));
-	fileMenu->Append(new wxMenuItem(fileMenu, ID_AddCropFilter, "Add Crop Filter"));
+	fileMenu->Append(new wxMenuItem(fileMenu, ID_SetupToCaptureAudio, "Setup to Capture Audio"));
+	fileMenu->Append(new wxMenuItem(fileMenu, ID_SetupToReplayAudio, "Setup to Replay Audio"));
 	fileMenu->AppendSeparator();
 	fileMenu->Append(new wxMenuItem(fileMenu, ID_Exit, "Exit"));
+
+	wxMenu* optionsMenu = new wxMenu();
+	optionsMenu->Append(new wxMenuItem(optionsMenu, ID_ScrubMode, "Scrub Mode", wxEmptyString, wxITEM_CHECK));
 
 	wxMenu* helpMenu = new wxMenu();
 	helpMenu->Append(new wxMenuItem(helpMenu, ID_About, "About"));
 
 	wxMenuBar* menuBar = new wxMenuBar();
 	menuBar->Append(fileMenu, "File");
+	menuBar->Append(optionsMenu, "Options");
 	menuBar->Append(helpMenu, "Help");
 	this->SetMenuBar(menuBar);
 
 	this->SetStatusBar(new wxStatusBar(this));
 
-	this->Bind(wxEVT_MENU, &Frame::OnAddVideoDestination, this, ID_AddFileVideoDestination);
-	this->Bind(wxEVT_MENU, &Frame::OnAddVideoDestination, this, ID_AddWindowVideoDestination);
-	this->Bind(wxEVT_MENU, &Frame::OnSetVideoSource, this, ID_SetCameraVideoSource);
-	this->Bind(wxEVT_MENU, &Frame::OnSetVideoSource, this, ID_SetFileVideoSource);
-	this->Bind(wxEVT_MENU, &Frame::OnAddFrameFilter, this, ID_AddRotationFilter);
-	this->Bind(wxEVT_MENU, &Frame::OnAddFrameFilter, this, ID_AddCropFilter);
-	this->Bind(wxEVT_MENU, &Frame::OnClearAllFilters, this, ID_ClearAllFilters);
+	this->Bind(wxEVT_MENU, &Frame::OnSetupMachine, this, ID_SetupToCaptureVideo);
+	this->Bind(wxEVT_MENU, &Frame::OnSetupMachine, this, ID_SetupToReplayVideo);
+	this->Bind(wxEVT_MENU, &Frame::OnSetupMachine, this, ID_SetupToCaptureAudio);
+	this->Bind(wxEVT_MENU, &Frame::OnSetupMachine, this, ID_SetupToReplayAudio);
 	this->Bind(wxEVT_MENU, &Frame::OnPowerMachine, this, ID_PowerOnMachine);
 	this->Bind(wxEVT_MENU, &Frame::OnPowerMachine, this, ID_PowerOffMachine);
+	this->Bind(wxEVT_MENU, &Frame::OnScrubMode, this, ID_ScrubMode);
 	this->Bind(wxEVT_MENU, &Frame::OnAbout, this, ID_About);
 	this->Bind(wxEVT_MENU, &Frame::OnExit, this, ID_Exit);
 	this->Bind(wxEVT_UPDATE_UI, &Frame::OnUpdateUI, this, ID_PowerOnMachine);
 	this->Bind(wxEVT_UPDATE_UI, &Frame::OnUpdateUI, this, ID_PowerOffMachine);
-	this->Bind(wxEVT_UPDATE_UI, &Frame::OnUpdateUI, this, ID_AddFileVideoDestination);
-	this->Bind(wxEVT_UPDATE_UI, &Frame::OnUpdateUI, this, ID_AddWindowVideoDestination);
-	this->Bind(wxEVT_UPDATE_UI, &Frame::OnUpdateUI, this, ID_SetCameraVideoSource);
-	this->Bind(wxEVT_UPDATE_UI, &Frame::OnUpdateUI, this, ID_SetFileVideoSource);
-	this->Bind(wxEVT_UPDATE_UI, &Frame::OnUpdateUI, this, ID_AddRotationFilter);
-	this->Bind(wxEVT_UPDATE_UI, &Frame::OnUpdateUI, this, ID_AddCropFilter);
-	this->Bind(wxEVT_UPDATE_UI, &Frame::OnUpdateUI, this, ID_ClearAllFilters);
+	this->Bind(wxEVT_UPDATE_UI, &Frame::OnUpdateUI, this, ID_SetupToCaptureVideo);
+	this->Bind(wxEVT_UPDATE_UI, &Frame::OnUpdateUI, this, ID_SetupToReplayVideo);
+	this->Bind(wxEVT_UPDATE_UI, &Frame::OnUpdateUI, this, ID_SetupToCaptureAudio);
+	this->Bind(wxEVT_UPDATE_UI, &Frame::OnUpdateUI, this, ID_SetupToReplayAudio);
+	this->Bind(wxEVT_UPDATE_UI, &Frame::OnUpdateUI, this, ID_ScrubMode);
 	this->Bind(wxEVT_CLOSE_WINDOW, &Frame::OnClose, this);
 	this->Bind(EVT_THREAD_ENTERING, &Frame::OnThreadEntering, this);
 	this->Bind(EVT_THREAD_EXITING, &Frame::OnThreadExiting, this);
@@ -93,7 +96,187 @@ void Frame::OnClose(wxCloseEvent& event)
 {
 	this->StopThread();
 	
+	OpenVCR::Error error;
+	wxGetApp().machine.DeleteAllIODevices(error);
+
 	wxFrame::OnCloseWindow(event);
+}
+
+void Frame::OnScrubMode(wxCommandEvent& event)
+{
+	this->scrubMode = !this->scrubMode;
+}
+
+void Frame::OnSetupMachine(wxCommandEvent& event)
+{
+	OpenVCR::Error error;
+
+	switch (event.GetId())
+	{
+		case ID_SetupToCaptureVideo:
+		{
+			wxTextEntryDialog deviceNumberDialog(this, "Enter camera URL or device number.", "Camera", "0");
+			if (wxID_OK != deviceNumberDialog.ShowModal())
+				return;
+
+			wxFileDialog saveFileDialog(this, "Choose file where video footage will get dumped.", "", "", "Video File (*.avi)|*.avi", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+			if (wxID_OK != saveFileDialog.ShowModal())
+				return;
+
+			wxGetApp().machine.DeleteAllIODevices(error);
+
+			auto cameraVideoSource = wxGetApp().machine.AddIODevice<OpenVCR::CameraVideoSource>("video_source", error);
+			if (!cameraVideoSource)
+			{
+				wxMessageBox(wxString::Format("Failed to create video source: %s", error.GetErrorMessage().c_str()), "Error", wxOK | wxICON_ERROR, this);
+				return;
+			}
+
+			wxString cameraText = deviceNumberDialog.GetValue();
+			long deviceNumber = 0;
+			if (cameraText.ToCLong(&deviceNumber))
+				cameraVideoSource->SetDeviceNumber((int)deviceNumber);
+			else
+				cameraVideoSource->SetCameraURL((const char*)cameraText.c_str());
+			
+			auto rotationFilter = wxGetApp().machine.AddIODevice<OpenVCR::RotationFilter>("rotation_filter", error);
+			if (!rotationFilter)
+			{
+				wxMessageBox(wxString::Format("Failed to create rotation filter: %s", error.GetErrorMessage().c_str()), "Error", wxOK | wxICON_ERROR, this);
+				return;
+			}
+
+			rotationFilter->SetSourceName(cameraVideoSource->GetName());
+			rotationFilter->SetRotationAngle(45.0);
+
+			auto fileVideoDestination = wxGetApp().machine.AddIODevice<OpenVCR::FileVideoDestination>("video_destination", error);
+			if (!fileVideoDestination)
+			{
+				wxMessageBox(wxString::Format("Failed to create video destination: %s", error.GetErrorMessage().c_str()), "Error", wxOK | wxICON_ERROR, this);
+				return;
+			}
+
+			fileVideoDestination->SetVideoFilePath((const char*)saveFileDialog.GetPath());
+			fileVideoDestination->SetSourceName(rotationFilter->GetName());
+			fileVideoDestination->SetFrameRate(30.0);
+			fileVideoDestination->SetFrameSize(640, 480);
+
+			auto windowVideoDestination = wxGetApp().machine.AddIODevice<OpenVCR::WindowVideoDestination>("window_destination", error);
+			if (!windowVideoDestination)
+			{
+				wxMessageBox(wxString::Format("Failed to create window video destination: %s", error.GetErrorMessage().c_str()), "Error", wxOK | wxICON_ERROR, this);
+				return;
+			}
+
+			windowVideoDestination->SetWindowHandle(this->renderControl->GetHWND());
+			windowVideoDestination->SetSourceName(rotationFilter->GetName());
+
+			wxMessageBox("Now setup to capture and dump video file!", "Success", wxOK | wxICON_INFORMATION, this);
+			break;
+		}
+		case ID_SetupToReplayVideo:
+		{
+			wxFileDialog openFileDialog(this, "Choose video file.", "", "", "Video File (*.avi)|*.avi", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+			if (wxID_OK != openFileDialog.ShowModal())
+				return;
+
+			wxGetApp().machine.DeleteAllIODevices(error);
+
+			auto fileVideoSource = wxGetApp().machine.AddIODevice<OpenVCR::FileVideoSource>("video_source", error);
+			if (!fileVideoSource)
+			{
+				wxMessageBox(wxString::Format("Failed to create video source: %s", error.GetErrorMessage().c_str()), "Error", wxOK | wxICON_ERROR, this);
+				return;
+			}
+
+			fileVideoSource->SetVideoFilePath((const char*)openFileDialog.GetPath().c_str());
+
+			auto windowVideoDestination = wxGetApp().machine.AddIODevice<OpenVCR::WindowVideoDestination>("window_destination", error);
+			if (!windowVideoDestination)
+			{
+				wxMessageBox(wxString::Format("Failed to create window video destination: %s", error.GetErrorMessage().c_str()), "Error", wxOK | wxICON_ERROR, this);
+				return;
+			}
+
+			windowVideoDestination->SetWindowHandle(this->renderControl->GetHWND());
+			windowVideoDestination->SetSourceName(fileVideoSource->GetName());
+
+			wxMessageBox("Now setup to replay video file!", "Success", wxOK | wxICON_INFORMATION, this);
+			break;
+		}
+		case ID_SetupToCaptureAudio:
+		{
+			wxFileDialog saveFileDialog(this, "Choose file where audio will get dumped.", "", "", "Wave File (*.wav)|*.wav", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+			if (wxID_OK != saveFileDialog.ShowModal())
+				return;
+
+			wxGetApp().machine.DeleteAllIODevices(error);
+
+			auto micAudioSource = wxGetApp().machine.AddIODevice<OpenVCR::MicAudioSource>("audio_source", error);
+			if (!micAudioSource)
+			{
+				wxMessageBox(wxString::Format("Failed to create audio source: %s", error.GetErrorMessage().c_str()), "Error", wxOK | wxICON_ERROR, this);
+				return;
+			}
+
+			micAudioSource->SetDeviceSubString("Logi");
+
+			auto fileAudioDestination = wxGetApp().machine.AddIODevice<OpenVCR::FileAudioDestination>("audio_destination", error);
+			if (!fileAudioDestination)
+			{
+				wxMessageBox(wxString::Format("Failed to create file audio destination: %s", error.GetErrorMessage().c_str()), "Error", wxOK | wxICON_ERROR, this);
+				return;
+			}
+
+			fileAudioDestination->SetSourceName(micAudioSource->GetName());
+			fileAudioDestination->SetAudioFilePath((const char*)saveFileDialog.GetPath().c_str());
+
+			wxMessageBox("Now setup to capture audio and dump to file!", "Success", wxOK | wxICON_INFORMATION, this);
+			break;
+		}
+		case ID_SetupToReplayAudio:
+		{
+			wxFileDialog openFileDialog(this, "Choose audio wave file.", "", "", "Wave File (*.wav)|*.wav", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+			if (wxID_OK != openFileDialog.ShowModal())
+				return;
+
+			wxGetApp().machine.DeleteAllIODevices(error);
+
+			auto fileAudioSource = wxGetApp().machine.AddIODevice<OpenVCR::FileAudioSource>("audio_source", error);
+			if (!fileAudioSource)
+			{
+				wxMessageBox(wxString::Format("Failed to create audio source: %s", error.GetErrorMessage().c_str()), "Error", wxOK | wxICON_ERROR, this);
+				return;
+			}
+
+			fileAudioSource->SetAudioFilePath((const char*)openFileDialog.GetPath().c_str());
+
+			auto volumeFilter = wxGetApp().machine.AddIODevice<OpenVCR::VolumeFilter>("volume_control", error);
+			if (!volumeFilter)
+			{
+				wxMessageBox(wxString::Format("Failed to create volume control: %s", error.GetErrorMessage().c_str()), "Error", wxOK | wxICON_ERROR, this);
+				return;
+			}
+
+			volumeFilter->SetVolume(0.9);
+			volumeFilter->SetSourceName(fileAudioSource->GetName());
+
+			auto speakerAudioDestination = wxGetApp().machine.AddIODevice<OpenVCR::SpeakerAudioDestination>("audio_destination", error);
+			if (!speakerAudioDestination)
+			{
+				wxMessageBox(wxString::Format("Failed to create speaker audio destination: %s", error.GetErrorMessage().c_str()), "Error", wxOK | wxICON_ERROR, this);
+				return;
+			}
+
+			speakerAudioDestination->SetSourceName(volumeFilter->GetName());
+			speakerAudioDestination->SetDeviceSubString("Logi");
+
+			fileAudioSource->SetAudioSinkName(speakerAudioDestination->GetName());
+
+			wxMessageBox("Now setup to replay audio file!", "Success", wxOK | wxICON_INFORMATION, this);
+			break;
+		}
+	}
 }
 
 void Frame::OnUpdateUI(wxUpdateUIEvent& event)
@@ -101,6 +284,10 @@ void Frame::OnUpdateUI(wxUpdateUIEvent& event)
 	switch (event.GetId())
 	{
 		case ID_PowerOnMachine:
+		case ID_SetupToCaptureVideo:
+		case ID_SetupToReplayVideo:
+		case ID_SetupToCaptureAudio:
+		case ID_SetupToReplayAudio:
 		{
 			event.Enable(!wxGetApp().machine.IsOn());
 			break;
@@ -110,28 +297,9 @@ void Frame::OnUpdateUI(wxUpdateUIEvent& event)
 			event.Enable(wxGetApp().machine.IsOn());
 			break;
 		}
-		case ID_AddWindowVideoDestination:
+		case ID_ScrubMode:
 		{
-			auto windowDestinationFound = []() -> bool {
-				for (int i = 0; i < wxGetApp().machine.GetNumVideoDestination(); i++)
-				{
-					OpenVCR::VideoDestination* videoDestination = wxGetApp().machine.GetVideoDestination(i);
-					if (dynamic_cast<OpenVCR::WindowVideoDestination*>(videoDestination))
-						return true;
-				}
-				return false;
-			};
-
-			event.Enable(!wxGetApp().machine.IsOn() && !windowDestinationFound());
-			break;
-		}
-		case ID_AddFileVideoDestination:
-		case ID_SetCameraVideoSource:
-		case ID_SetFileVideoSource:
-		case ID_AddRotationFilter:
-		case ID_ClearAllFilters:
-		{
-			event.Enable(!wxGetApp().machine.IsOn());
+			event.Check(this->scrubMode);
 			break;
 		}
 	}
@@ -151,82 +319,12 @@ bool Frame::StringToNumberArray(const wxString& str, std::vector<int>& numberArr
 	return true;
 }
 
-void Frame::OnAddFrameFilter(wxCommandEvent& event)
-{
-	OpenVCR::Error error;
-
-	if (event.GetId() == ID_AddRotationFilter)
-	{
-		wxNumberEntryDialog numberDialog(this, "Rotate image how many degrees?", "Degrees", "Rotation Angle", 0, 0, 360);
-		if (wxID_OK == numberDialog.ShowModal())
-		{
-			auto rotationFilter = new OpenVCR::RotationFilter();
-			*rotationFilter->name = "Rotator";
-			rotationFilter->rotationAngleDegrees = (double)numberDialog.GetValue();
-			wxGetApp().machine.AddFrameFilter(rotationFilter, error);
-			if (error.GetCount() == 0)
-				wxMessageBox("Filter added!", "Success", wxOK | wxICON_INFORMATION, this);
-			else
-				delete rotationFilter;
-		}
-	}
-	else if (event.GetId() == ID_AddCropFilter)
-	{
-		wxTextEntryDialog cropDialog(this, "Enter crop parameters (left,right,top,bottom).", "Crop", "0,0,0,0");
-		if (wxID_OK == cropDialog.ShowModal())
-		{
-			std::vector<int> cropParams;
-			if (!this->StringToNumberArray(cropDialog.GetValue(), cropParams) || cropParams.size() != 4)
-				wxMessageBox("Didn't parse string input as four numbers separated by commas, no spaces.", "Error!", wxOK | wxICON_ERROR, this);
-			else
-			{
-				auto cropFilter = new OpenVCR::CropFilter();
-				*cropFilter->name = "Cropper";
-				cropFilter->leftCrop = cropParams[0];
-				cropFilter->rightCrop = cropParams[1];
-				cropFilter->topCrop = cropParams[2];
-				cropFilter->bottomCrop = cropParams[3];
-				wxGetApp().machine.AddFrameFilter(cropFilter, error);
-				if (error.GetCount() == 0)
-					wxMessageBox("Filter added!", "Success", wxOK | wxICON_INFORMATION, this);
-				else
-					delete cropFilter;
-			}
-		}
-	}
-
-	if (error.GetCount() > 0)
-		wxMessageBox(error.GetErrorMessage(), "Error!", wxOK | wxICON_ERROR, this);
-}
-
-void Frame::OnClearAllFilters(wxCommandEvent& event)
-{
-	OpenVCR::Error error;
-	if (!wxGetApp().machine.ClearAllFrameFilters(true, error))
-		wxMessageBox(error.GetErrorMessage(), "Error!", wxOK | wxICON_ERROR, this);
-}
-
 void Frame::OnSliderChanged(wxScrollEvent& event)
 {
-	if (wxGetApp().machine.IsOn())
+	if (wxGetApp().machine.IsOn() && this->scrubMode)
 	{
-		if (wxGetApp().machine.GetPullMethod() != OpenVCR::Machine::SourcePullMethod::SET_FRAME_POS_MANUAL)
-		{
-			wxGetApp().machine.SetPullMethod(OpenVCR::Machine::SourcePullMethod::SET_FRAME_POS_MANUAL);
-		}
-
 		double lerpAlpha = double(this->slider->GetValue()) / double(this->slider->GetMax());
-		
-		long frameCount = 0;
-		OpenVCR::Error error;
-		if (!wxGetApp().machine.GetVideoSource()->GetFrameCount(frameCount, error))
-		{
-			wxMessageBox(error.GetErrorMessage(), "Error!", wxOK | wxICON_ERROR, this);
-			return;
-		}
-		
-		double framePosition = lerpAlpha * double(frameCount - 1);
-		wxGetApp().machine.SetFramePosition(framePosition);
+		wxGetApp().machine.SetPosition(lerpAlpha);
 	}
 }
 
@@ -236,6 +334,11 @@ void Frame::OnPowerMachine(wxCommandEvent& event)
 
 	if (event.GetId() == ID_PowerOnMachine)
 	{
+		if (this->scrubMode)
+			wxGetApp().machine.SetDisposition(OpenVCR::Machine::Disposition::PLACE);
+		else
+			wxGetApp().machine.SetDisposition(OpenVCR::Machine::Disposition::PULL);
+
 		this->StartThread();
 	}
 	else if (event.GetId() == ID_PowerOffMachine)
@@ -285,76 +388,9 @@ void Frame::OnThreadError(ThreadErrorEvent& event)
 
 void Frame::OnThreadStatus(ThreadStatusEvent& event)
 {
-	this->GetStatusBar()->SetStatusText(event.statusMsg);
-}
-
-void Frame::OnSetVideoSource(wxCommandEvent& event)
-{
-	OpenVCR::Error error;
-
-	if (event.GetId() == ID_SetFileVideoSource)
-	{
-		wxFileDialog openFileDialog(this, "Choose Video File", "", "", "Any File (*.*)|*.*", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
-		if (wxID_OK == openFileDialog.ShowModal())
-		{
-			auto fileVideoSource = new OpenVCR::FileVideoSource();
-			fileVideoSource->SetVideoFilePath((const char*)openFileDialog.GetPath().c_str());
-			wxGetApp().machine.SetVideoSource(fileVideoSource, true, error);
-			if (error.GetCount() == 0)
-				wxMessageBox("File video source set to: " + wxString(fileVideoSource->GetVideoFilePath().c_str()), "Message", wxOK | wxICON_INFORMATION, this);
-		}
-	}
-	else if (event.GetId() == ID_SetCameraVideoSource)
-	{
-		wxTextEntryDialog textDialog(this, "Enter camera URl or device number.", "Camera", "0");
-		if (wxID_OK == textDialog.ShowModal())
-		{
-			auto cameraVideoSource = new OpenVCR::CameraVideoSource();
-			wxString cameraText = textDialog.GetValue();
-			long deviceNumber = 0;
-			if (cameraText.ToCLong(&deviceNumber))
-				cameraVideoSource->SetDeviceNumber((int)deviceNumber);
-			else
-				cameraVideoSource->SetCameraURL((const char*)cameraText.c_str());
-			wxGetApp().machine.SetVideoSource(cameraVideoSource, true, error);
-			if (error.GetCount() == 0)
-				wxMessageBox("Camera video source set to: " + cameraText, "Message", wxOK | wxICON_INFORMATION, this);
-		}
-	}
-
-	if (error.GetCount() > 0)
-		wxMessageBox(error.GetErrorMessage().c_str(), "Error", wxOK | wxICON_ERROR, this);
-}
-
-void Frame::OnAddVideoDestination(wxCommandEvent& event)
-{
-	OpenVCR::Error error;
-
-	if (event.GetId() == ID_AddWindowVideoDestination)
-	{
-		HWND windowHandle = (HWND)this->renderControl->GetHWND();
-		auto windowVideoDestination = new OpenVCR::WindowVideoDestination();
-		windowVideoDestination->SetWindowHandle(windowHandle);
-		wxGetApp().machine.AddVideoDestination(windowVideoDestination, error);
-		if (error.GetCount() == 0)
-			wxMessageBox(wxString::Format("Window video destination set to HWND: %" PRIxPTR, uintptr_t(windowHandle)), "Message", wxOK | wxICON_INFORMATION, this);
-	}
-	else if (event.GetId() == ID_AddFileVideoDestination)
-	{
-		wxFileDialog saveFileDialog(this, "Choose Video File", "", "", "Any File (*.*)|*.*", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-		if (wxID_OK == saveFileDialog.ShowModal())
-		{
-			auto fileVideoDestination = new OpenVCR::FileVideoDestination();
-			wxString fileVideoPath = saveFileDialog.GetPath();
-			fileVideoDestination->SetVideoFilePath((const char*)fileVideoPath.c_str());
-			wxGetApp().machine.AddVideoDestination(fileVideoDestination, error);
-			if (error.GetCount() == 0)
-				wxMessageBox(wxString("File video destination added for: ") + fileVideoPath, "Message", wxOK | wxICON_INFORMATION, this);
-		}
-	}
-
-	if (error.GetCount() > 0)
-		wxMessageBox(error.GetErrorMessage().c_str(), "Error", wxOK | wxICON_ERROR, this);
+	static int count = 0, frequency = 16;
+	if (count++ % frequency == 0)
+		this->GetStatusBar()->SetStatusText(event.statusMsg);
 }
 
 void Frame::OnResize(wxSizeEvent& event)

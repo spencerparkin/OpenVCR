@@ -67,13 +67,12 @@ Thread::Thread(wxEvtHandler* eventHandler) : wxThread(wxTHREAD_JOINABLE)
 
 			if (this->windowSizeChanged)
 			{
-				for (int j = 0; j < machine.GetNumVideoDestination(); j++)
+				std::vector<OpenVCR::WindowVideoDestination*> windowVideoDestinationArray;
+				if (machine.FindAllIODevices<OpenVCR::WindowVideoDestination>(windowVideoDestinationArray))
 				{
-					OpenVCR::VideoDestination* videoDestination = machine.GetVideoDestination(j);
-					OpenVCR::WindowVideoDestination* windowVideoDestination = dynamic_cast<OpenVCR::WindowVideoDestination*>(videoDestination);
-					if (windowVideoDestination)
+					for (OpenVCR::WindowVideoDestination* windowVideoDestination : windowVideoDestinationArray)
 					{
-						if (!windowVideoDestination->WindowSizeChanged(error))
+						if(!windowVideoDestination->WindowSizeChanged(error))
 							::wxQueueEvent(this->eventHandler, new ThreadErrorEvent(error.GetErrorMessage()));
 					}
 				}
