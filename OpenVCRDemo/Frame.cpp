@@ -258,6 +258,8 @@ void Frame::OnSetupMachine(wxCommandEvent& event)
 			speakerAudioDestination->SetSourceName(fileAudioSource->GetName());
 			speakerAudioDestination->SetDeviceSubString("Logi");
 
+			fileAudioSource->SetAudioSinkName(speakerAudioDestination->GetName());
+
 			break;
 		}
 	}

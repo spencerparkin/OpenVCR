@@ -14,8 +14,8 @@ namespace OpenVCR
 
 		virtual bool GetSampleData(std::vector<Uint8>& sampleBuffer);
 		virtual SDL_AudioSpec* GetAudioSpec();
-		virtual Uint32 GetPlaybackPosition() const;
-		virtual void SetPlaybackPosition(Uint32 playbackPosition);
+		virtual bool GetPlaybackTime(double& playbackTimeSeconds) const;
+		virtual bool SetPlaybackTime(double playbackTimeSeconds);
 
 	protected:
 		SDL_AudioSpec audioSpec;

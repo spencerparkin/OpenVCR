@@ -50,17 +50,6 @@ FileAudioDestination::FileAudioDestination(const std::string& givenName) : Audio
 		return false;
 	}
 
-	AudioFile<int> debugFile;
-	if (debugFile.load("C:\\ENG_DEV\\driver\\trunk\\Main_8\\apis\\OpenVCR\\MediaSamples\\StarWars60.wav"))
-	{
-		int bitDepth = debugFile.getBitDepth();
-		int numChannels = debugFile.getNumChannels();
-		int samplesPerChannel = debugFile.getNumSamplesPerChannel();
-		int sampleRate = debugFile.getSampleRate();
-		double lengthSeconds = debugFile.getLengthInSeconds();
-		lengthSeconds = 0.0;
-	}
-
 	memcpy(&this->inputSpec, audioDevice->GetAudioSpec(), sizeof(SDL_AudioSpec));
 	
 	this->audioStream = SDL_NewAudioStream(
@@ -81,6 +70,7 @@ FileAudioDestination::FileAudioDestination(const std::string& givenName) : Audio
 
 /*virtual*/ bool FileAudioDestination::PowerOff(Machine* machine, Error& error)
 {
+	// TODO: We may need to flush the audio to disk as we capture it so that we don't fill up RAM.
 	if (this->audioStream)
 	{
 		SDL_AudioStreamFlush(this->audioStream);

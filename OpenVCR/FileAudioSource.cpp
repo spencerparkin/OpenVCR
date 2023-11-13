@@ -10,16 +10,16 @@ FileAudioSource::FileAudioSource(const std::string& givenName) : AudioDevice(giv
 	this->audioBuffer = nullptr;
 	this->audioBufferSize = 0;
 	this->audioSinkName = new std::string();
-	this->futurePosition = 0;
-	this->futureBufferSize = 10 * 1024;
-	this->nextSampleBuffer = new std::vector<Uint8>();
+	this->playbackPosition = 0;
+	this->playbackChunkSizeBytes = 256;
+	this->nextSampleStart = 0;
+	this->nextSampleEnd = 0;
 }
 
 /*virtual*/ FileAudioSource::~FileAudioSource()
 {
 	delete this->audioFilePath;
 	delete this->audioSinkName;
-	delete this->nextSampleBuffer;
 }
 
 /*static*/ FileAudioSource* FileAudioSource::Create(const std::string& name)
@@ -29,6 +29,9 @@ FileAudioSource::FileAudioSource(const std::string& givenName) : AudioDevice(giv
 
 /*virtual*/ bool FileAudioSource::PowerOn(Machine* machine, Error& error)
 {
+	// TODO: We may need to be able to stream the audio from disk so that we don't need to have it all in RAM all at once.
+	//       Each tick, we'd load some future audio, and only make sure the future is loaded up to a certain point.
+	//       If ever the playback position had to be adjusted, we could wipe our cache and start over.
 	if (!SDL_LoadWAV(this->audioFilePath->c_str(), &this->audioSpec, &this->audioBuffer, &this->audioBufferSize))
 	{
 		error.Add(SDL_GetError());
@@ -42,7 +45,8 @@ FileAudioSource::FileAudioSource(const std::string& givenName) : AudioDevice(giv
 		return false;
 	}
 
-	this->futurePosition = 0;
+	this->playbackPosition = 0;
+	audioSinkDevice->SetPlaybackTime(0.0);
 	return true;
 }
 
@@ -65,8 +69,6 @@ FileAudioSource::FileAudioSource(const std::string& givenName) : AudioDevice(giv
 		return false;
 	}
 
-	Uint32 playbackPosition = audioSinkDevice->GetPlaybackPosition();
-
 	if (machine->GetDisposition() == Machine::Disposition::PLACE)
 	{
 		double position = machine->GetPosition();
@@ -76,27 +78,10 @@ FileAudioSource::FileAudioSource(const std::string& givenName) : AudioDevice(giv
 		//       if the machine position is being moved along at a close-enough speed to the playback rate and we have a large-enough tolerance?
 	}
 
-	Uint32 numBytesToGrab = 0;
-	if (futurePosition <= playbackPosition)
-	{
-		futurePosition = playbackPosition;
-		numBytesToGrab = futureBufferSize;
-	}
-	else
-	{
-		Uint32 numBytesBuffered = futurePosition - playbackPosition;
-		if (numBytesBuffered < this->futureBufferSize)
-			numBytesToGrab = this->futureBufferSize - numBytesBuffered;
-	}
+	this->nextSampleStart = this->playbackPosition;
+	this->nextSampleEnd = this->playbackPosition + this->playbackChunkSizeBytes;
 
-	if (futurePosition + numBytesToGrab > this->audioBufferSize)
-		numBytesToGrab = this->audioBufferSize - futurePosition;
-
-	this->nextSampleBuffer->clear();
-	this->nextSampleBuffer->resize(numBytesToGrab);
-	::memcpy(this->nextSampleBuffer->data(), &this->audioBuffer[futurePosition], numBytesToGrab);
-
-	futurePosition += numBytesToGrab;
+	this->playbackPosition += this->playbackChunkSizeBytes;
 
 	this->complete = true;
 	return true;
@@ -105,8 +90,10 @@ FileAudioSource::FileAudioSource(const std::string& givenName) : AudioDevice(giv
 /*virtual*/ bool FileAudioSource::GetSampleData(std::vector<Uint8>& sampleBuffer)
 {
 	sampleBuffer.clear();
-	sampleBuffer.resize(this->nextSampleBuffer->size());
-	::memcpy(sampleBuffer.data(), this->nextSampleBuffer->data(), this->nextSampleBuffer->size());
+	for (int i = this->nextSampleStart; i < (signed)this->nextSampleEnd; i++)
+		if (0 <= i && i < (signed)this->audioBufferSize)
+			sampleBuffer.push_back(this->audioBuffer[i]);
+
 	return sampleBuffer.size() > 0;
 }
 

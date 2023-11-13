@@ -172,8 +172,20 @@ bool Machine::Tick(Error& error)
 
 void Machine::GetStatus(std::string& statusMsg)
 {
-	// TODO: Return something meaningful here.
-	statusMsg = "?";
+	statusMsg = "";
+
+	for (auto pair : *this->ioDeviceMap)
+	{
+		IODevice* ioDevice = pair.second;
+
+		std::string deviceMsg = ioDevice->GetStatusMessage();
+		if (deviceMsg.length() > 0)
+		{
+			if (statusMsg.length() > 0)
+				statusMsg += " / ";
+			statusMsg += deviceMsg;
+		}
+	}
 }
 
 Machine::Disposition Machine::GetDisposition() const

@@ -47,3 +47,8 @@ IODevice::IODevice(const std::string& givenName)
 {
 	return 0;
 }
+
+/*virtual*/ std::string IODevice::GetStatusMessage() const
+{
+	return "";
+}

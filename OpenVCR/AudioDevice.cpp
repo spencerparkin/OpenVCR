@@ -21,11 +21,12 @@ AudioDevice::AudioDevice(const std::string& givenName) : IODevice(givenName)
 	return &this->audioSpec;
 }
 
-/*virtual*/ Uint32 AudioDevice::GetPlaybackPosition() const
+/*virtual*/ bool AudioDevice::GetPlaybackTime(double& playbackTimeSeconds) const
 {
-	return 0;
+	return false;
 }
 
-/*virtual*/ void AudioDevice::SetPlaybackPosition(Uint32 playbackPosition)
+/*virtual*/ bool AudioDevice::SetPlaybackTime(double playbackTimeSeconds)
 {
+	return false;
 }

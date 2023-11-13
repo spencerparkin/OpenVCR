@@ -9,7 +9,8 @@ SpeakAudioDestination::SpeakAudioDestination(const std::string& givenName) : Aud
 	this->deviceSubStr = new std::string();
 	this->machineThreadBuffer = new std::vector<Uint8>();
 	this->audioStream = nullptr;
-	this->playbackPosition = 0;
+	this->initialPlaybackTimeSeconds = 0.0;
+	this->totalBytesSunk = 0;
 }
 
 /*virtual*/ SpeakAudioDestination::~SpeakAudioDestination()
@@ -44,9 +45,10 @@ SpeakAudioDestination::SpeakAudioDestination(const std::string& givenName) : Aud
 	}
 
 	SDL_AudioSpec* sourceSpec = audioDevice->GetAudioSpec();
-	::memcpy(&this->audioSpec, sourceSpec, sizeof(SDL_AudioSpec));
-	this->audioSpec.callback = &SpeakAudioDestination::AudioCallbackEntry;
-	this->audioSpec.userdata = this;
+	SDL_AudioSpec desiredSpec;
+	::memcpy(&desiredSpec, sourceSpec, sizeof(SDL_AudioSpec));
+	desiredSpec.callback = &SpeakAudioDestination::AudioCallbackEntry;
+	desiredSpec.userdata = this;
 
 	int numAudioDevices = SDL_GetNumAudioDevices(0);
 	if (numAudioDevices == 0)
@@ -66,12 +68,7 @@ SpeakAudioDestination::SpeakAudioDestination(const std::string& givenName) : Aud
 		}
 	}
 
-	// TODO: The units of our playbackPosition needs to be in terms of samples frames, not bytes, because
-	//       samples frames, I believe, are a format-independent measure of how far along the source buffer
-	//       we are.  So for example, single channel 16-bit signed integer audio converted to 2-channel 32-bit
-	//       floating point audio will be a different size, but the number of samples frames should be the same.
-	//       Maybe we can verify this using Adam Stark's audio library and do some test conversions.
-	this->deviceID = SDL_OpenAudioDevice(audioDeviceName, 0, sourceSpec, &this->audioSpec, SDL_AUDIO_ALLOW_ANY_CHANGE);
+	this->deviceID = SDL_OpenAudioDevice(audioDeviceName, 0, &desiredSpec, &this->audioSpec, SDL_AUDIO_ALLOW_ANY_CHANGE);
 	if (this->deviceID == 0)
 	{
 		error.Add(std::format("Failed to open audio device: {}", SDL_GetError()));
@@ -91,7 +88,8 @@ SpeakAudioDestination::SpeakAudioDestination(const std::string& givenName) : Aud
 		return false;
 	}
 
-	this->playbackPosition = 0;
+	this->initialPlaybackTimeSeconds = 0.0;
+	this->totalBytesSunk = 0;
 	SDL_PauseAudioDevice(this->deviceID, 0);
 	return true;
 }
@@ -135,9 +133,12 @@ void SpeakAudioDestination::SetDeviceSubString(const std::string& deviceSubStr)
 	this->machineThreadBuffer->clear();
 	audioDevice->GetSampleData(*this->machineThreadBuffer);
 
-	SDL_LockAudioDevice(this->deviceID);
-	SDL_AudioStreamPut(this->audioStream, this->machineThreadBuffer->data(), (int)this->machineThreadBuffer->size());
-	SDL_UnlockAudioDevice(this->deviceID);
+	if (this->machineThreadBuffer->size() > 0)
+	{
+		SDL_LockAudioDevice(this->deviceID);
+		SDL_AudioStreamPut(this->audioStream, this->machineThreadBuffer->data(), (int)this->machineThreadBuffer->size());
+		SDL_UnlockAudioDevice(this->deviceID);
+	}
 
 	this->complete = true;
 	return true;
@@ -149,7 +150,7 @@ void SpeakAudioDestination::AudioCallback(Uint8* buffer, int length)
 	for (int i = numBytesGotten; i < length; i++)
 		buffer[i] = this->audioSpec.silence;
 
-	this->playbackPosition += numBytesGotten;
+	this->totalBytesSunk += numBytesGotten;
 }
 
 /*static*/ void SDLCALL SpeakAudioDestination::AudioCallbackEntry(void* userData, Uint8* buffer, int length)
@@ -158,15 +159,44 @@ void SpeakAudioDestination::AudioCallback(Uint8* buffer, int length)
 	speakerAudioDestination->AudioCallback(buffer, length);
 }
 
-/*virtual*/ Uint32 SpeakAudioDestination::GetPlaybackPosition() const
+/*virtual*/ bool SpeakAudioDestination::GetPlaybackTime(double& playbackTimeSeconds) const
 {
-	return this->playbackPosition;
+	// Is this samples per second or sample frames per second?
+	int sinkRateSamplesPerSecond = this->audioSpec.freq;
+	
+	int bitsPerSample = this->audioSpec.format & 0xFF;
+	int bytesPerSample = bitsPerSample / 8;
+
+	int sinkRateBytesPerSecond = sinkRateSamplesPerSecond / bytesPerSample;
+
+	double sinkTimeSeconds = double(this->totalBytesSunk) / double(sinkRateBytesPerSecond);
+	
+	playbackTimeSeconds = this->initialPlaybackTimeSeconds + sinkTimeSeconds;
+	return true;
 }
 
-/*virtual*/ void SpeakAudioDestination::SetPlaybackPosition(Uint32 playbackPosition)
+/*virtual*/ bool SpeakAudioDestination::SetPlaybackTime(double playbackTimeSeconds)
 {
-	SDL_LockAudioDevice(this->deviceID);
-	this->playbackPosition = playbackPosition;
-	SDL_AudioStreamClear(this->audioStream);
-	SDL_UnlockAudioDevice(this->deviceID);
+	if (this->deviceID != 0 && this->audioStream)
+	{
+		SDL_LockAudioDevice(this->deviceID);
+		this->initialPlaybackTimeSeconds = playbackTimeSeconds;
+		this->totalBytesSunk = 0;
+		SDL_AudioStreamClear(this->audioStream);
+		SDL_UnlockAudioDevice(this->deviceID);
+	}
+	else
+	{
+		this->initialPlaybackTimeSeconds = playbackTimeSeconds;
+		this->totalBytesSunk = 0;
+	}
+
+	return true;
+}
+
+/*virtual*/ std::string SpeakAudioDestination::GetStatusMessage() const
+{
+	double playbackTimeSeconds = 0.0;
+	this->GetPlaybackTime(playbackTimeSeconds);
+	return std::format("Audio playback time: {}", playbackTimeSeconds);
 }

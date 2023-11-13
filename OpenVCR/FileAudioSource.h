@@ -29,8 +29,9 @@ namespace OpenVCR
 		std::string* audioFilePath;
 		Uint8* audioBuffer;
 		Uint32 audioBufferSize;
-		Uint32 futurePosition;
-		Uint32 futureBufferSize;
-		std::vector<Uint8>* nextSampleBuffer;
+		Uint32 playbackPosition;
+		Uint32 playbackChunkSizeBytes;
+		Uint32 nextSampleStart;
+		Uint32 nextSampleEnd;
 	};
 }
