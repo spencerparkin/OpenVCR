@@ -3,7 +3,7 @@
 
 using namespace OpenVCR;
 
-SpeakAudioDestination::SpeakAudioDestination(const std::string& givenName) : AudioDevice(givenName)
+SpeakerAudioDestination::SpeakerAudioDestination(const std::string& givenName) : AudioDevice(givenName)
 {
 	this->deviceID = 0;
 	this->deviceSubStr = new std::string();
@@ -13,23 +13,23 @@ SpeakAudioDestination::SpeakAudioDestination(const std::string& givenName) : Aud
 	this->totalBytesSunk = 0;
 }
 
-/*virtual*/ SpeakAudioDestination::~SpeakAudioDestination()
+/*virtual*/ SpeakerAudioDestination::~SpeakerAudioDestination()
 {
 	delete this->deviceSubStr;
 	delete this->machineThreadBuffer;
 }
 
-/*static*/ SpeakAudioDestination* SpeakAudioDestination::Create(const std::string& name)
+/*static*/ SpeakerAudioDestination* SpeakerAudioDestination::Create(const std::string& name)
 {
-	return new SpeakAudioDestination(name);
+	return new SpeakerAudioDestination(name);
 }
 
-/*virtual*/ int SpeakAudioDestination::GetSortKey() const
+/*virtual*/ int SpeakerAudioDestination::GetSortKey() const
 {
 	return 1;
 }
 
-/*virtual*/ bool SpeakAudioDestination::PowerOn(Machine* machine, Error& error)
+/*virtual*/ bool SpeakerAudioDestination::PowerOn(Machine* machine, Error& error)
 {
 	if (this->deviceID != 0)
 	{
@@ -47,7 +47,7 @@ SpeakAudioDestination::SpeakAudioDestination(const std::string& givenName) : Aud
 	SDL_AudioSpec* sourceSpec = audioDevice->GetAudioSpec();
 	SDL_AudioSpec desiredSpec;
 	::memcpy(&desiredSpec, sourceSpec, sizeof(SDL_AudioSpec));
-	desiredSpec.callback = &SpeakAudioDestination::AudioCallbackEntry;
+	desiredSpec.callback = &SpeakerAudioDestination::AudioCallbackEntry;
 	desiredSpec.userdata = this;
 
 	int numAudioDevices = SDL_GetNumAudioDevices(0);
@@ -94,7 +94,7 @@ SpeakAudioDestination::SpeakAudioDestination(const std::string& givenName) : Aud
 	return true;
 }
 
-/*virtual*/ bool SpeakAudioDestination::PowerOff(Machine* machine, Error& error)
+/*virtual*/ bool SpeakerAudioDestination::PowerOff(Machine* machine, Error& error)
 {
 	if (this->deviceID != 0)
 	{
@@ -111,12 +111,12 @@ SpeakAudioDestination::SpeakAudioDestination(const std::string& givenName) : Aud
 	return true;
 }
 
-void SpeakAudioDestination::SetDeviceSubString(const std::string& deviceSubStr)
+void SpeakerAudioDestination::SetDeviceSubString(const std::string& deviceSubStr)
 {
 	*this->deviceSubStr = deviceSubStr;
 }
 
-/*virtual*/ bool SpeakAudioDestination::MoveData(Machine* machine, Error& error)
+/*virtual*/ bool SpeakerAudioDestination::MoveData(Machine* machine, Error& error)
 {
 	AudioDevice* audioDevice = machine->FindIODevice<AudioDevice>(*this->sourceName);
 	if (!audioDevice)
@@ -144,7 +144,7 @@ void SpeakAudioDestination::SetDeviceSubString(const std::string& deviceSubStr)
 	return true;
 }
 
-void SpeakAudioDestination::AudioCallback(Uint8* buffer, int length)
+void SpeakerAudioDestination::AudioCallback(Uint8* buffer, int length)
 {
 	int numBytesGotten = SDL_AudioStreamGet(this->audioStream, buffer, length);
 	for (int i = numBytesGotten; i < length; i++)
@@ -153,13 +153,13 @@ void SpeakAudioDestination::AudioCallback(Uint8* buffer, int length)
 	this->totalBytesSunk += numBytesGotten;
 }
 
-/*static*/ void SDLCALL SpeakAudioDestination::AudioCallbackEntry(void* userData, Uint8* buffer, int length)
+/*static*/ void SDLCALL SpeakerAudioDestination::AudioCallbackEntry(void* userData, Uint8* buffer, int length)
 {
-	auto speakerAudioDestination = static_cast<SpeakAudioDestination*>(userData);
+	auto speakerAudioDestination = static_cast<SpeakerAudioDestination*>(userData);
 	speakerAudioDestination->AudioCallback(buffer, length);
 }
 
-/*virtual*/ bool SpeakAudioDestination::GetPlaybackTime(double& playbackTimeSeconds) const
+/*virtual*/ bool SpeakerAudioDestination::GetPlaybackTime(double& playbackTimeSeconds) const
 {
 	// Is this samples per second or sample frames per second?
 	int sinkRateSamplesPerSecond = this->audioSpec.freq;
@@ -175,7 +175,7 @@ void SpeakAudioDestination::AudioCallback(Uint8* buffer, int length)
 	return true;
 }
 
-/*virtual*/ bool SpeakAudioDestination::SetPlaybackTime(double playbackTimeSeconds)
+/*virtual*/ bool SpeakerAudioDestination::SetPlaybackTime(double playbackTimeSeconds)
 {
 	if (this->deviceID != 0 && this->audioStream)
 	{
@@ -194,7 +194,7 @@ void SpeakAudioDestination::AudioCallback(Uint8* buffer, int length)
 	return true;
 }
 
-/*virtual*/ std::string SpeakAudioDestination::GetStatusMessage() const
+/*virtual*/ std::string SpeakerAudioDestination::GetStatusMessage() const
 {
 	double playbackTimeSeconds = 0.0;
 	this->GetPlaybackTime(playbackTimeSeconds);

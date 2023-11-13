@@ -4,13 +4,13 @@
 
 namespace OpenVCR
 {
-	class OPEN_VCR_API SpeakAudioDestination : public AudioDevice
+	class OPEN_VCR_API SpeakerAudioDestination : public AudioDevice
 	{
 	public:
-		SpeakAudioDestination(const std::string& givenName);
-		virtual ~SpeakAudioDestination();
+		SpeakerAudioDestination(const std::string& givenName);
+		virtual ~SpeakerAudioDestination();
 
-		static SpeakAudioDestination* Create(const std::string& name);
+		static SpeakerAudioDestination* Create(const std::string& name);
 
 		virtual bool PowerOn(Machine* machine, Error& error) override;
 		virtual bool PowerOff(Machine* machine, Error& error) override;

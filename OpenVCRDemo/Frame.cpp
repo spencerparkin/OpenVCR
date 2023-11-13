@@ -248,7 +248,7 @@ void Frame::OnSetupMachine(wxCommandEvent& event)
 
 			fileAudioSource->SetAudioFilePath((const char*)openFileDialog.GetPath().c_str());
 
-			auto speakerAudioDestination = wxGetApp().machine.AddIODevice<OpenVCR::SpeakAudioDestination>("audio_destination", error);
+			auto speakerAudioDestination = wxGetApp().machine.AddIODevice<OpenVCR::SpeakerAudioDestination>("audio_destination", error);
 			if (!speakerAudioDestination)
 			{
 				wxMessageBox(wxString::Format("Failed to create speaker audio destination: %s", error.GetErrorMessage().c_str()), "Error", wxOK | wxICON_ERROR, this);
