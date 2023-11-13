@@ -90,6 +90,7 @@ WindowVideoDestination::RenderMode WindowVideoDestination::GetRenderMode()
     if (!this->CreateFrameTexture(error))
         return false;
 
+    this->poweredOn = true;
     return true;
 }
 
@@ -129,6 +130,7 @@ WindowVideoDestination::RenderMode WindowVideoDestination::GetRenderMode()
     this->windowWidth = 0;
     this->windowHeight = 0;
 
+    this->poweredOn = false;
 	return true;
 }
 

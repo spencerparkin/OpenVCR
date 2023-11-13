@@ -73,22 +73,38 @@ bool Machine::PowerOn(Error& error)
 	cv::utils::logging::setLogLevel(cv::utils::logging::LOG_LEVEL_SILENT);
 #endif
 
-	std::vector<IODevice*> ioDeviceArray;
-	for (auto pair : *this->ioDeviceMap)
-		ioDeviceArray.push_back(pair.second);
-
-	std::sort(ioDeviceArray.begin(), ioDeviceArray.end(), [](const IODevice* deviceA, const IODevice* deviceB) -> int
-		{
-			return deviceA->GetSortKey() < deviceB->GetSortKey();
-		});
-
-	for (IODevice* ioDevice : ioDeviceArray)
+	// Power on all the IO devices in the correct order.
+	int powerOnCount = 0;
+	while (powerOnCount < this->ioDeviceMap->size())
 	{
-		if (!ioDevice->PowerOn(this, error))
+		int thisPassPowerOnCount = 0;
+
+		for(auto pair : *this->ioDeviceMap)
 		{
-			error.Add("IO device power-on failed.");
+			IODevice* ioDevice = pair.second;
+			if (!ioDevice->IsPoweredOn())
+			{
+				IODevice* sourceDevice = this->FindIODevice<IODevice>(ioDevice->GetSourceName());
+				if (!sourceDevice || sourceDevice->IsPoweredOn())
+				{
+					if (ioDevice->PowerOn(this, error))
+						thisPassPowerOnCount++;
+					else
+					{
+						error.Add("IO device power-on failed.");
+						return false;
+					}
+				}
+			}
+		}
+
+		if (thisPassPowerOnCount == 0)
+		{
+			error.Add("Full power-on pass made with no power-on success.");
 			return false;
 		}
+
+		powerOnCount += thisPassPowerOnCount;
 	}
 
 	this->isPoweredOn = true;
@@ -97,6 +113,7 @@ bool Machine::PowerOn(Error& error)
 
 bool Machine::PowerOff(Error& error)
 {
+	// We should be able topower everything off in any order.
 	for (auto pair : *this->ioDeviceMap)
 	{
 		IODevice* ioDevice = pair.second;

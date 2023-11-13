@@ -45,6 +45,7 @@ CameraVideoSource::CameraVideoSource(const std::string& givenName) : VideoDevice
 	}
 
 	this->frameNumber = 0;
+	this->poweredOn = true;
 	return true;
 }
 
@@ -58,6 +59,7 @@ CameraVideoSource::CameraVideoSource(const std::string& givenName) : VideoDevice
 	}
 
 	this->frameNumber = 0;
+	this->poweredOn = false;
 	return true;
 }
 

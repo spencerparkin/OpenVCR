@@ -15,7 +15,6 @@ namespace OpenVCR
 		virtual bool PowerOn(Machine* machine, Error& error) override;
 		virtual bool PowerOff(Machine* machine, Error& error) override;
 		virtual bool MoveData(Machine* machine, Error& error) override;
-		virtual int GetSortKey() const override;
 
 		void SetAudioFilePath(const std::string& audioFilePath);
 		const std::string& GetAudioFilePath() const;

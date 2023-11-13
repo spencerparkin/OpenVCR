@@ -72,6 +72,7 @@ MicAudioSource::MicAudioSource(const std::string& givenName) : AudioDevice(given
 	}
 
 	SDL_PauseAudioDevice(this->deviceID, 0);
+	this->poweredOn = true;
 	return true;
 }
 
@@ -85,6 +86,8 @@ MicAudioSource::MicAudioSource(const std::string& givenName) : AudioDevice(given
 
 	this->machineThreadBuffer->clear();
 	this->audioThreadBuffer->clear();
+
+	this->poweredOn = false;
 	return true;
 }
 
@@ -107,11 +110,6 @@ MicAudioSource::MicAudioSource(const std::string& givenName) : AudioDevice(given
 		sampleBuffer.push_back(byte);
 	this->machineThreadBuffer->clear();
 	return sampleBuffer.size() > 0;
-}
-
-/*virtual*/ int MicAudioSource::GetSortKey() const
-{
-	return 0;
 }
 
 void MicAudioSource::SetDeviceSubString(const std::string& deviceSubStr)

@@ -11,7 +11,7 @@ FileAudioSource::FileAudioSource(const std::string& givenName) : AudioDevice(giv
 	this->audioBufferSize = 0;
 	this->audioSinkName = new std::string();
 	this->playbackPosition = 0;
-	this->playbackChunkSizeBytes = 256;
+	this->playbackChunkSizeBytes = 16;
 	this->nextSampleStart = 0;
 	this->nextSampleEnd = 0;
 }
@@ -47,6 +47,7 @@ FileAudioSource::FileAudioSource(const std::string& givenName) : AudioDevice(giv
 
 	this->playbackPosition = 0;
 	audioSinkDevice->SetPlaybackTime(0.0);
+	this->poweredOn = true;
 	return true;
 }
 
@@ -57,6 +58,7 @@ FileAudioSource::FileAudioSource(const std::string& givenName) : AudioDevice(giv
 	this->audioBuffer = nullptr;
 	this->audioBufferSize = 0;
 
+	this->poweredOn = false;
 	return true;
 }
 
@@ -74,7 +76,7 @@ FileAudioSource::FileAudioSource(const std::string& givenName) : AudioDevice(giv
 		double position = machine->GetPosition();
 
 		// TODO: If the machine position drifts away from the playback position by more than a given tolerance, then adjust the playback position.
-		//       This means calling audioSinkDevice->SetPlaybackPosition() which will disrupt audio, but maybe this won't happen too often
+		//       This means calling audioSinkDevice->SetPlaybackTime() which will disrupt audio, but maybe this won't happen too often
 		//       if the machine position is being moved along at a close-enough speed to the playback rate and we have a large-enough tolerance?
 	}
 

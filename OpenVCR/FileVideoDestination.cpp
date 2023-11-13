@@ -23,13 +23,6 @@ FileVideoDestination::FileVideoDestination(const std::string& givenName) : Video
 	return new FileVideoDestination(name);		// Allocate class in this DLL's heap!
 }
 
-/*virtual*/ int FileVideoDestination::GetSortKey() const
-{
-	// This is a bit hacky, I guesss, but the idea here is to make sure that
-	// we get powered-on *after* everything else we care about.
-	return 1;
-}
-
 /*virtual*/ bool FileVideoDestination::PowerOn(Machine* machine, Error& error)
 {
 	if (this->videoWriter)
@@ -81,6 +74,7 @@ FileVideoDestination::FileVideoDestination(const std::string& givenName) : Video
 		return false;
 	}
 
+	this->poweredOn = true;
 	return true;
 }
 
@@ -93,6 +87,7 @@ FileVideoDestination::FileVideoDestination(const std::string& givenName) : Video
 		this->videoWriter = nullptr;
 	}
 
+	this->poweredOn = false;
 	return true;
 }
 

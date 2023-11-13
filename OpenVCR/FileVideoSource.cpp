@@ -50,6 +50,7 @@ const std::string& FileVideoSource::GetVideoFilePath()
 	}
 	this->frameCount = long(propertyValue);
 
+	this->poweredOn = true;
 	return true;
 }
 
@@ -62,6 +63,7 @@ const std::string& FileVideoSource::GetVideoFilePath()
 		this->videoCapture = nullptr;
 	}
 
+	this->poweredOn = false;
 	return true;
 }
 

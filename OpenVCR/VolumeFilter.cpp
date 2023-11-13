@@ -20,11 +20,6 @@ VolumeFilter::VolumeFilter(const std::string& givenName) : AudioDevice(givenName
 	return new VolumeFilter(name);
 }
 
-/*virtual*/ int VolumeFilter::GetSortKey() const
-{
-	return 1;
-}
-
 /*virtual*/ bool VolumeFilter::PowerOn(Machine* machine, Error& error)
 {
 	AudioDevice* audioDevice = machine->FindIODevice<AudioDevice>(*this->sourceName);
@@ -35,11 +30,14 @@ VolumeFilter::VolumeFilter(const std::string& givenName) : AudioDevice(givenName
 	}
 
 	::memcpy(&this->audioSpec, audioDevice->GetAudioSpec(), sizeof(SDL_AudioSpec));
+
+	this->poweredOn = true;
 	return true;
 }
 
 /*virtual*/ bool VolumeFilter::PowerOff(Machine* machine, Error& error)
 {
+	this->poweredOn = false;
 	return true;
 }
 

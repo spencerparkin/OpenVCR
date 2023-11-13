@@ -15,7 +15,6 @@ namespace OpenVCR
 		virtual bool PowerOn(Machine* machine, Error& error) override;
 		virtual bool PowerOff(Machine* machine, Error& error) override;
 		virtual bool MoveData(Machine* machine, Error& error) override;
-		virtual int GetSortKey() const override;
 		virtual bool GetPlaybackTime(double& playbackTimeSeconds) const override;
 		virtual bool SetPlaybackTime(double playbackTimeSeconds) override;
 		virtual std::string GetStatusMessage() const override;

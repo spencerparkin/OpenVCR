@@ -24,11 +24,6 @@ SpeakerAudioDestination::SpeakerAudioDestination(const std::string& givenName) :
 	return new SpeakerAudioDestination(name);
 }
 
-/*virtual*/ int SpeakerAudioDestination::GetSortKey() const
-{
-	return 2;
-}
-
 /*virtual*/ bool SpeakerAudioDestination::PowerOn(Machine* machine, Error& error)
 {
 	if (this->deviceID != 0)
@@ -91,6 +86,8 @@ SpeakerAudioDestination::SpeakerAudioDestination(const std::string& givenName) :
 	this->initialPlaybackTimeSeconds = 0.0;
 	this->totalBytesSunk = 0;
 	SDL_PauseAudioDevice(this->deviceID, 0);
+
+	this->poweredOn = true;
 	return true;
 }
 
@@ -108,6 +105,7 @@ SpeakerAudioDestination::SpeakerAudioDestination(const std::string& givenName) :
 		this->audioStream = nullptr;
 	}
 
+	this->poweredOn = false;
 	return true;
 }
 

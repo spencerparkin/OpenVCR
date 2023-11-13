@@ -7,6 +7,7 @@ IODevice::IODevice(const std::string& givenName)
 	this->name = new std::string;
 	this->sourceName = new std::string;
 	this->complete = false;
+	this->poweredOn = false;
 
 	this->SetName(givenName);
 }
@@ -41,11 +42,6 @@ IODevice::IODevice(const std::string& givenName)
 /*virtual*/ bool IODevice::MoveData(Machine* machine, Error& error)
 {
 	return false;
-}
-
-/*virtual*/ int IODevice::GetSortKey() const
-{
-	return 0;
 }
 
 /*virtual*/ std::string IODevice::GetStatusMessage() const

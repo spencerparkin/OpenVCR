@@ -19,7 +19,6 @@ namespace OpenVCR
 		virtual bool PreTick(Machine* machine, Error& error);
 		virtual bool PostTick(Machine* machine, Error& error);
 		virtual bool MoveData(Machine* machine, Error& error);
-		virtual int GetSortKey() const;
 		virtual std::string GetStatusMessage() const;
 		
 		void SetName(const std::string& givenName) { *this->name = givenName; }
@@ -28,10 +27,12 @@ namespace OpenVCR
 		void SetSourceName(const std::string& givenName) { *this->sourceName = givenName; }
 		const std::string& GetSourceName() const { return *this->sourceName; }
 
+		bool IsPoweredOn() const { return this->poweredOn; }
 		bool IsComplete() const { return this->complete; }
 
 	protected:
 
+		bool poweredOn;
 		bool complete;
 		std::string* name;
 		std::string* sourceName;

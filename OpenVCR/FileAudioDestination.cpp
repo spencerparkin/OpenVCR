@@ -65,6 +65,7 @@ FileAudioDestination::FileAudioDestination(const std::string& givenName) : Audio
 		return false;
 	}
 
+	this->poweredOn = true;
 	return true;
 }
 
@@ -110,6 +111,7 @@ FileAudioDestination::FileAudioDestination(const std::string& givenName) : Audio
 		SDL_FreeAudioStream(this->audioStream);
 	}
 
+	this->poweredOn = false;
 	return error.GetCount() == 0;
 }
 
@@ -138,11 +140,6 @@ FileAudioDestination::FileAudioDestination(const std::string& givenName) : Audio
 
 	this->complete = true;
 	return true;
-}
-
-/*virtual*/ int FileAudioDestination::GetSortKey() const
-{
-	return 1;
 }
 
 void FileAudioDestination::SetAudioFilePath(const std::string& audioFilePath)

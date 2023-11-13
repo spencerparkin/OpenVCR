@@ -16,7 +16,6 @@ namespace OpenVCR
 		virtual bool PowerOff(Machine* machine, Error& error) override;
 		virtual bool MoveData(Machine* machine, Error& error) override;
 		virtual bool GetSampleData(std::vector<Uint8>& sampleBuffer) override;
-		virtual int GetSortKey() const override;
 
 		void SetVolume(double volume);
 		double GetVolume() const;
