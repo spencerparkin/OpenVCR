@@ -175,6 +175,7 @@
     <ClInclude Include="Machine.h" />
     <ClInclude Include="SpeakerAudioDestination.h" />
     <ClInclude Include="VideoDevice.h" />
+    <ClInclude Include="VolumeFilter.h" />
     <ClInclude Include="WindowVideoDestination.h" />
   </ItemGroup>
   <ItemGroup>
@@ -192,6 +193,7 @@
     <ClCompile Include="RotationFilter.cpp" />
     <ClCompile Include="SpeakerAudioDestination.cpp" />
     <ClCompile Include="VideoDevice.cpp" />
+    <ClCompile Include="VolumeFilter.cpp" />
     <ClCompile Include="WindowVideoDestination.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -82,6 +82,9 @@
     <ClInclude Include="AudioFile.h">
       <Filter>Sources</Filter>
     </ClInclude>
+    <ClInclude Include="VolumeFilter.h">
+      <Filter>Sources\AudioFilters</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Machine.cpp">
@@ -128,6 +131,9 @@
     </ClCompile>
     <ClCompile Include="MicAudioSource.cpp">
       <Filter>Sources\AudioSources</Filter>
+    </ClCompile>
+    <ClCompile Include="VolumeFilter.cpp">
+      <Filter>Sources\AudioFilters</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

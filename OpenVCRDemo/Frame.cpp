@@ -11,6 +11,7 @@
 #include <MicAudioSource.h>
 #include <RotationFilter.h>
 #include <CropFilter.h>
+#include <VolumeFilter.h>
 #include <Error.h>
 #include <wx/menu.h>
 #include <wx/msgdlg.h>
@@ -248,6 +249,16 @@ void Frame::OnSetupMachine(wxCommandEvent& event)
 
 			fileAudioSource->SetAudioFilePath((const char*)openFileDialog.GetPath().c_str());
 
+			auto volumeFilter = wxGetApp().machine.AddIODevice<OpenVCR::VolumeFilter>("volume_control", error);
+			if (!volumeFilter)
+			{
+				wxMessageBox(wxString::Format("Failed to create volume control: %s", error.GetErrorMessage().c_str()), "Error", wxOK | wxICON_ERROR, this);
+				return;
+			}
+
+			volumeFilter->SetVolume(0.01);
+			volumeFilter->SetSourceName(fileAudioSource->GetName());
+
 			auto speakerAudioDestination = wxGetApp().machine.AddIODevice<OpenVCR::SpeakerAudioDestination>("audio_destination", error);
 			if (!speakerAudioDestination)
 			{
@@ -255,7 +266,7 @@ void Frame::OnSetupMachine(wxCommandEvent& event)
 				return;
 			}
 
-			speakerAudioDestination->SetSourceName(fileAudioSource->GetName());
+			speakerAudioDestination->SetSourceName(volumeFilter->GetName());
 			speakerAudioDestination->SetDeviceSubString("Logi");
 
 			fileAudioSource->SetAudioSinkName(speakerAudioDestination->GetName());

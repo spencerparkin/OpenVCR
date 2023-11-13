@@ -26,7 +26,7 @@ SpeakerAudioDestination::SpeakerAudioDestination(const std::string& givenName) :
 
 /*virtual*/ int SpeakerAudioDestination::GetSortKey() const
 {
-	return 1;
+	return 2;
 }
 
 /*virtual*/ bool SpeakerAudioDestination::PowerOn(Machine* machine, Error& error)
@@ -163,7 +163,7 @@ void SpeakerAudioDestination::AudioCallback(Uint8* buffer, int length)
 {
 	Uint32 sinkRateSampleFramesPerSecond = this->audioSpec.freq;
 
-	Uint32 bitsPerSample = this->audioSpec.format & 0xFF;
+	Uint32 bitsPerSample = SDL_AUDIO_BITSIZE(this->audioSpec.format);
 	Uint32 bytesPerSample = bitsPerSample / 8;
 
 	Uint32 totalSamplesSunk = this->totalBytesSunk / bytesPerSample;
