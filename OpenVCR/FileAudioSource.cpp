@@ -6,6 +6,8 @@ using namespace OpenVCR;
 
 FileAudioSource::FileAudioSource(const std::string& givenName) : AudioDevice(givenName)
 {
+	this->totalDurationSeconds = 0.0;
+	this->playbackDriftToleranceSeconds = 3.0;
 	this->audioFilePath = new std::string();
 	this->audioBuffer = nullptr;
 	this->audioBufferSize = 0;
@@ -45,6 +47,9 @@ FileAudioSource::FileAudioSource(const std::string& givenName) : AudioDevice(giv
 		return false;
 	}
 
+	Uint32 bytesPerSample = SDL_AUDIO_BITSIZE(this->audioSpec.format) / 8;
+	this->totalDurationSeconds = double((this->audioBufferSize / bytesPerSample) / this->audioSpec.channels) / double(this->audioSpec.freq);
+
 	this->playbackPosition = 0;
 	audioSinkDevice->SetPlaybackTime(0.0);
 	this->poweredOn = true;
@@ -74,12 +79,21 @@ FileAudioSource::FileAudioSource(const std::string& givenName) : AudioDevice(giv
 	if (machine->GetDisposition() == Machine::Disposition::PLACE)
 	{
 		double position = machine->GetPosition();
+		double desiredPlaybackTimeSeconds = position * this->totalDurationSeconds;
 
-		// TODO: If the machine position drifts away from the playback position by more than a given tolerance, then adjust the playback position.
-		//       This means calling audioSinkDevice->SetPlaybackTime() which will disrupt audio, but maybe this won't happen too often
-		//       if the machine position is being moved along at a close-enough speed to the playback rate and we have a large-enough tolerance?
+		double actualPlaybackTimeSeconds = 0.0;
+		audioSinkDevice->GetPlaybackTime(actualPlaybackTimeSeconds);
+
+		if (fabs(desiredPlaybackTimeSeconds - actualPlaybackTimeSeconds) > this->playbackDriftToleranceSeconds)
+		{
+			// TODO: Calculate new playbackPosition to be on a sample-frame boundary.
+
+			audioSinkDevice->SetPlaybackTime(desiredPlaybackTimeSeconds);
+		}
 	}
 
+	// TODO: All this needs to be reworked so that we're only staying, say, a few seconds ahead of the sink.
+	//       It would be useful to be able to convert from a buffer position to a time index, and vice-versa.
 	this->nextSampleStart = this->playbackPosition;
 	this->nextSampleEnd = this->playbackPosition + this->playbackChunkSizeBytes;
 

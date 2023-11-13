@@ -25,6 +25,8 @@ namespace OpenVCR
 		const std::string& GetAudioSinkName() const;
 
 	private:
+		double totalDurationSeconds;
+		double playbackDriftToleranceSeconds;
 		std::string* audioSinkName;
 		std::string* audioFilePath;
 		Uint8* audioBuffer;
