@@ -8,14 +8,14 @@ FileAudioSource::FileAudioSource(const std::string& givenName) : AudioDevice(giv
 {
 	this->totalDurationSeconds = 0.0;
 	this->playbackDriftToleranceSeconds = 3.0;
+	this->futureBufferSeconds = 5.0;
 	this->audioFilePath = new std::string();
 	this->audioBuffer = nullptr;
 	this->audioBufferSize = 0;
 	this->audioSinkName = new std::string();
-	this->playbackPosition = 0;
-	this->playbackChunkSizeBytes = 16;
-	this->nextSampleStart = 0;
-	this->nextSampleEnd = 0;
+	this->futurePosition = 0;
+	this->sampleChunkSizeBytes = 16;
+	this->nextSampleOffset = 0;
 }
 
 /*virtual*/ FileAudioSource::~FileAudioSource()
@@ -31,9 +31,7 @@ FileAudioSource::FileAudioSource(const std::string& givenName) : AudioDevice(giv
 
 /*virtual*/ bool FileAudioSource::PowerOn(Machine* machine, Error& error)
 {
-	// TODO: We may need to be able to stream the audio from disk so that we don't need to have it all in RAM all at once.
-	//       Each tick, we'd load some future audio, and only make sure the future is loaded up to a certain point.
-	//       If ever the playback position had to be adjusted, we could wipe our cache and start over.
+	// If the WAVE file is too big to be fully resident, then it's probably just not practical anyway.  I'm not going to worry about streaming from disk.
 	if (!SDL_LoadWAV(this->audioFilePath->c_str(), &this->audioSpec, &this->audioBuffer, &this->audioBufferSize))
 	{
 		error.Add(SDL_GetError());
@@ -47,10 +45,9 @@ FileAudioSource::FileAudioSource(const std::string& givenName) : AudioDevice(giv
 		return false;
 	}
 
-	Uint32 bytesPerSample = SDL_AUDIO_BITSIZE(this->audioSpec.format) / 8;
-	this->totalDurationSeconds = double((this->audioBufferSize / bytesPerSample) / this->audioSpec.channels) / double(this->audioSpec.freq);
+	this->totalDurationSeconds = this->AudioBufferOffsetToTimeSeconds(this->audioBufferSize);
 
-	this->playbackPosition = 0;
+	this->futurePosition = 0;
 	audioSinkDevice->SetPlaybackTime(0.0);
 	this->poweredOn = true;
 	return true;
@@ -76,28 +73,31 @@ FileAudioSource::FileAudioSource(const std::string& givenName) : AudioDevice(giv
 		return false;
 	}
 
+	double actualPlaybackTimeSeconds = 0.0;
+	audioSinkDevice->GetPlaybackTime(actualPlaybackTimeSeconds);
+
 	if (machine->GetDisposition() == Machine::Disposition::PLACE)
 	{
 		double position = machine->GetPosition();
 		double desiredPlaybackTimeSeconds = position * this->totalDurationSeconds;
 
-		double actualPlaybackTimeSeconds = 0.0;
-		audioSinkDevice->GetPlaybackTime(actualPlaybackTimeSeconds);
-
 		if (fabs(desiredPlaybackTimeSeconds - actualPlaybackTimeSeconds) > this->playbackDriftToleranceSeconds)
 		{
-			// TODO: Calculate new playbackPosition to be on a sample-frame boundary.
-
+			this->futurePosition = this->AudioBufferOffsetFromTimeSeconds(desiredPlaybackTimeSeconds);
 			audioSinkDevice->SetPlaybackTime(desiredPlaybackTimeSeconds);
 		}
 	}
 
-	// TODO: All this needs to be reworked so that we're only staying, say, a few seconds ahead of the sink.
-	//       It would be useful to be able to convert from a buffer position to a time index, and vice-versa.
-	this->nextSampleStart = this->playbackPosition;
-	this->nextSampleEnd = this->playbackPosition + this->playbackChunkSizeBytes;
-
-	this->playbackPosition += this->playbackChunkSizeBytes;
+	double futureTimeSeconds = this->AudioBufferOffsetToTimeSeconds(this->futurePosition);
+	if (futureTimeSeconds - actualPlaybackTimeSeconds < this->futureBufferSeconds)
+	{
+		this->nextSampleOffset = this->futurePosition;
+		this->futurePosition += this->sampleChunkSizeBytes;
+	}
+	else
+	{
+		this->nextSampleOffset = -1;
+	}
 
 	this->complete = true;
 	return true;
@@ -106,11 +106,39 @@ FileAudioSource::FileAudioSource(const std::string& givenName) : AudioDevice(giv
 /*virtual*/ bool FileAudioSource::GetSampleData(std::vector<Uint8>& sampleBuffer)
 {
 	sampleBuffer.clear();
-	for (int i = this->nextSampleStart; i < (signed)this->nextSampleEnd; i++)
-		if (0 <= i && i < (signed)this->audioBufferSize)
-			sampleBuffer.push_back(this->audioBuffer[i]);
+	
+	if (this->nextSampleOffset != -1)
+	{
+		for (int i = this->nextSampleOffset; i < (signed)(this->nextSampleOffset + this->sampleChunkSizeBytes); i++)
+			if (0 <= i && i < (signed)this->audioBufferSize)
+				sampleBuffer.push_back(this->audioBuffer[i]);
+	}
 
 	return sampleBuffer.size() > 0;
+}
+
+double FileAudioSource::AudioBufferOffsetToTimeSeconds(Uint32 audioBufferOffset) const
+{
+	Uint32 bytesPerSample = SDL_AUDIO_BITSIZE(this->audioSpec.format) / 8;
+	Uint32 sampleFrameSize = this->audioSpec.channels * bytesPerSample;
+	return double(audioBufferOffset) / (double(sampleFrameSize) * double(this->audioSpec.freq));
+}
+
+// The returned offset here is guarenteed to be on a sample-frame boundary.
+Uint32 FileAudioSource::AudioBufferOffsetFromTimeSeconds(double timeSeconds) const
+{
+	Uint32 bytesPerSample = SDL_AUDIO_BITSIZE(this->audioSpec.format) / 8;
+	Uint32 sampleFrameSize = this->audioSpec.channels * bytesPerSample;
+	Uint32 audioBufferOffset = Uint32(timeSeconds * double(sampleFrameSize) * double(this->audioSpec.freq));
+	Uint32 remainder = audioBufferOffset % sampleFrameSize;
+	audioBufferOffset -= remainder;
+	return audioBufferOffset;
+}
+
+/*virtual*/ std::string FileAudioSource::GetStatusMessage() const
+{
+	double futureTimeSeconds = this->AudioBufferOffsetToTimeSeconds(this->futurePosition);
+	return std::format("Future time: {:.2f}", futureTimeSeconds);
 }
 
 void FileAudioSource::SetAudioFilePath(const std::string& audioFilePath)

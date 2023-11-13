@@ -17,6 +17,7 @@ namespace OpenVCR
 		virtual bool PowerOff(Machine* machine, Error& error) override;
 		virtual bool MoveData(Machine* machine, Error& error) override;
 		virtual bool GetSampleData(std::vector<Uint8>& sampleBuffer) override;
+		virtual std::string GetStatusMessage() const override;
 
 		void SetAudioFilePath(const std::string& audioFilePath);
 		const std::string& GetAudioFilePath() const;
@@ -25,15 +26,18 @@ namespace OpenVCR
 		const std::string& GetAudioSinkName() const;
 
 	private:
+		double AudioBufferOffsetToTimeSeconds(Uint32 audioBufferOffset) const;
+		Uint32 AudioBufferOffsetFromTimeSeconds(double timeSeconds) const;
+
 		double totalDurationSeconds;
 		double playbackDriftToleranceSeconds;
+		double futureBufferSeconds;
 		std::string* audioSinkName;
 		std::string* audioFilePath;
 		Uint8* audioBuffer;
 		Uint32 audioBufferSize;
-		Uint32 playbackPosition;
-		Uint32 playbackChunkSizeBytes;
-		Uint32 nextSampleStart;
-		Uint32 nextSampleEnd;
+		Uint32 futurePosition;
+		Uint32 sampleChunkSizeBytes;
+		Uint32 nextSampleOffset;
 	};
 }

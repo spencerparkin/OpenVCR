@@ -71,7 +71,6 @@ FileAudioDestination::FileAudioDestination(const std::string& givenName) : Audio
 
 /*virtual*/ bool FileAudioDestination::PowerOff(Machine* machine, Error& error)
 {
-	// TODO: We may need to flush the audio to disk as we capture it so that we don't fill up RAM.
 	if (this->audioStream)
 	{
 		SDL_AudioStreamFlush(this->audioStream);
@@ -127,6 +126,7 @@ FileAudioDestination::FileAudioDestination(const std::string& givenName) : Audio
 	if (!audioDevice->IsComplete())
 		return true;
 
+	// We could flush audio to disk as we capture, but if that's necessary, then the WAVE files are just too big anyway.
 	std::vector<Uint8> sampleBuffer;
 	if (audioDevice->GetSampleData(sampleBuffer))
 	{
