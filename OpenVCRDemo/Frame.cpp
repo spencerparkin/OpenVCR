@@ -385,7 +385,9 @@ void Frame::OnThreadError(ThreadErrorEvent& event)
 
 void Frame::OnThreadStatus(ThreadStatusEvent& event)
 {
-	this->GetStatusBar()->SetStatusText(event.statusMsg);
+	static int count = 0, frequency = 16;
+	if (count++ % frequency == 0)
+		this->GetStatusBar()->SetStatusText(event.statusMsg);
 }
 
 void Frame::OnResize(wxSizeEvent& event)
