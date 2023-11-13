@@ -161,17 +161,17 @@ void SpeakerAudioDestination::AudioCallback(Uint8* buffer, int length)
 
 /*virtual*/ bool SpeakerAudioDestination::GetPlaybackTime(double& playbackTimeSeconds) const
 {
-	// Is this samples per second or sample frames per second?
-	int sinkRateSamplesPerSecond = this->audioSpec.freq;
-	
-	int bitsPerSample = this->audioSpec.format & 0xFF;
-	int bytesPerSample = bitsPerSample / 8;
+	Uint32 sinkRateSampleFramesPerSecond = this->audioSpec.freq;
 
-	int sinkRateBytesPerSecond = sinkRateSamplesPerSecond / bytesPerSample;
+	Uint32 bitsPerSample = this->audioSpec.format & 0xFF;
+	Uint32 bytesPerSample = bitsPerSample / 8;
 
-	double sinkTimeSeconds = double(this->totalBytesSunk) / double(sinkRateBytesPerSecond);
+	Uint32 totalSamplesSunk = this->totalBytesSunk / bytesPerSample;
+	Uint32 totalSampleFramesSunk = totalSamplesSunk / this->audioSpec.channels;
+
+	double totalSinkTimeSeconds = double(totalSampleFramesSunk) / double(sinkRateSampleFramesPerSecond);
 	
-	playbackTimeSeconds = this->initialPlaybackTimeSeconds + sinkTimeSeconds;
+	playbackTimeSeconds = this->initialPlaybackTimeSeconds + totalSinkTimeSeconds;
 	return true;
 }
 
@@ -198,5 +198,5 @@ void SpeakerAudioDestination::AudioCallback(Uint8* buffer, int length)
 {
 	double playbackTimeSeconds = 0.0;
 	this->GetPlaybackTime(playbackTimeSeconds);
-	return std::format("Audio playback time: {}", playbackTimeSeconds);
+	return std::format("Audio playback time: {:.2f}", playbackTimeSeconds);
 }
