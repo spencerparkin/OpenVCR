@@ -57,6 +57,9 @@ FileVideoDestination::FileVideoDestination(const std::string& givenName) : Video
 		}
 	}
 
+	if (this->frameRateFPS == 0.0)
+		this->frameRateFPS = 30.0;
+
 	int encoderFourCC = 0;
 	// TODO: Need this?
 	//encoderFourCC = (int)videoCapture->get(cv::CAP_PROP_FOURCC);
