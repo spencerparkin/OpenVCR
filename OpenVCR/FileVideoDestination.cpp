@@ -10,6 +10,7 @@ FileVideoDestination::FileVideoDestination(const std::string& givenName) : Video
 	this->videoFilePath = new std::string();
 	this->frameSize = new cv::Size(0, 0);
 	this->frameRateFPS = 0.0;
+	this->suspendFrameWrites = false;
 }
 
 /*virtual*/ FileVideoDestination::~FileVideoDestination()
