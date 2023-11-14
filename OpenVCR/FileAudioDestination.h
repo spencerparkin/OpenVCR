@@ -19,11 +19,16 @@ namespace OpenVCR
 		void SetAudioFilePath(const std::string& audioFilePath);
 		const std::string& GetAudioFilePath() const;
 
+		void Pause();
+		void Resume();
+		bool IsPaused() const;
+
 	private:
 
 		SDL_AudioSpec inputSpec;
 		SDL_AudioSpec outputSpec;
 		SDL_AudioStream* audioStream;
 		std::string* audioFilePath;
+		bool suspendSampleWrites;
 	};
 }

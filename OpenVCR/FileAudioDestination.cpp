@@ -9,6 +9,7 @@ FileAudioDestination::FileAudioDestination(const std::string& givenName) : Audio
 {
 	this->audioFilePath = new std::string();
 	this->audioStream = nullptr;
+	this->suspendSampleWrites = false;
 
 	::memset(&this->inputSpec, 0, sizeof(SDL_AudioSpec));
 
@@ -130,11 +131,14 @@ FileAudioDestination::FileAudioDestination(const std::string& givenName) : Audio
 	std::vector<Uint8> sampleBuffer;
 	if (audioDevice->GetSampleData(sampleBuffer))
 	{
-		int result = SDL_AudioStreamPut(this->audioStream, sampleBuffer.data(), (int)sampleBuffer.size());
-		if (result < 0)
+		if (!this->suspendSampleWrites)
 		{
-			error.Add(std::string("Failed to put samples into audio stream: {}", SDL_GetError()));
-			return false;
+			int result = SDL_AudioStreamPut(this->audioStream, sampleBuffer.data(), (int)sampleBuffer.size());
+			if (result < 0)
+			{
+				error.Add(std::string("Failed to put samples into audio stream: {}", SDL_GetError()));
+				return false;
+			}
 		}
 	}
 
@@ -150,4 +154,19 @@ void FileAudioDestination::SetAudioFilePath(const std::string& audioFilePath)
 const std::string& FileAudioDestination::GetAudioFilePath() const
 {
 	return *this->audioFilePath;
+}
+
+void FileAudioDestination::Pause()
+{
+	this->suspendSampleWrites = true;
+}
+
+void FileAudioDestination::Resume()
+{
+	this->suspendSampleWrites = false;
+}
+
+bool FileAudioDestination::IsPaused() const
+{
+	return this->suspendSampleWrites;
 }
