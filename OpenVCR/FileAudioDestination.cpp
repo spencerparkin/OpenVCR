@@ -2,6 +2,7 @@
 #include "Error.h"
 #include "Machine.h"
 #include "AudioFile.h"
+#include "AudioFileSDL.h"
 
 using namespace OpenVCR;
 
@@ -90,20 +91,29 @@ FileAudioDestination::FileAudioDestination(const std::string& givenName) : Audio
 				else
 				{
 					AudioFile<int> audioFile;
-					audioFile.setNumChannels(this->outputSpec.channels);
-					audioFile.setNumSamplesPerChannel(audioBufferSize / 2);
-					audioFile.setSampleRate(this->outputSpec.freq);
-					audioFile.setBitDepth(16);
+					bool converted = false;
 
-					Sint16* audioBufferSamples = reinterpret_cast<Sint16*>(audioBuffer);
-					for (int i = 0; i < (signed)audioBufferSize / 2; i++)
-						audioFile.samples[0][i] = audioBufferSamples[i];
+					if (SDL_AUDIO_ISSIGNED(this->outputSpec.format))
+					{
+						switch (SDL_AUDIO_BITSIZE(this->outputSpec.format))
+						{
+						case 16:
+							converted = AudioBufferToAudioFile<int, Sint16>(audioBuffer, audioBufferSize, this->outputSpec, audioFile);
+							break;
+						}
+					}
+					
+					if(!converted)
+						error.Add("Failed to convert audio buffer to audio file object.");
 
 					delete[] audioBuffer;
 
-					bool saved = audioFile.save(*this->audioFilePath, AudioFileFormat::Wave);
-					if (!saved)
-						error.Add(std::format("Failed to save file: {}", this->audioFilePath->c_str()));
+					if (converted)
+					{
+						bool saved = audioFile.save(*this->audioFilePath, AudioFileFormat::Wave);
+						if (!saved)
+							error.Add(std::format("Failed to save file: {}", this->audioFilePath->c_str()));
+					}
 				}
 			}
 		}

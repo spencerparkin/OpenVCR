@@ -85,6 +85,9 @@
     <ClInclude Include="VolumeFilter.h">
       <Filter>Sources\AudioFilters</Filter>
     </ClInclude>
+    <ClInclude Include="AudioFileSDL.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Machine.cpp">

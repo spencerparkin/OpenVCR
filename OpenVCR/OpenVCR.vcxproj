@@ -161,6 +161,7 @@
   <ItemGroup>
     <ClInclude Include="AudioDevice.h" />
     <ClInclude Include="AudioFile.h" />
+    <ClInclude Include="AudioFileSDL.h" />
     <ClInclude Include="CameraVideoSource.h" />
     <ClInclude Include="Common.h" />
     <ClInclude Include="CropFilter.h" />
