@@ -88,6 +88,12 @@
     <ClInclude Include="AudioFileSDL.h">
       <Filter>Sources</Filter>
     </ClInclude>
+    <ClInclude Include="AdditiveAudioMixer.h">
+      <Filter>Sources\AudioMixers</Filter>
+    </ClInclude>
+    <ClInclude Include="ByteStream.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Machine.cpp">
@@ -137,6 +143,12 @@
     </ClCompile>
     <ClCompile Include="VolumeFilter.cpp">
       <Filter>Sources\AudioFilters</Filter>
+    </ClCompile>
+    <ClCompile Include="AdditiveAudioMixer.cpp">
+      <Filter>Sources\AudioMixers</Filter>
+    </ClCompile>
+    <ClCompile Include="ByteStream.cpp">
+      <Filter>Sources</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

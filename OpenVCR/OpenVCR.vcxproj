@@ -159,9 +159,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="AdditiveAudioMixer.h" />
     <ClInclude Include="AudioDevice.h" />
     <ClInclude Include="AudioFile.h" />
     <ClInclude Include="AudioFileSDL.h" />
+    <ClInclude Include="ByteStream.h" />
     <ClInclude Include="CameraVideoSource.h" />
     <ClInclude Include="Common.h" />
     <ClInclude Include="CropFilter.h" />
@@ -180,7 +182,9 @@
     <ClInclude Include="WindowVideoDestination.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AdditiveAudioMixer.cpp" />
     <ClCompile Include="AudioDevice.cpp" />
+    <ClCompile Include="ByteStream.cpp" />
     <ClCompile Include="CameraVideoSource.cpp" />
     <ClCompile Include="CropFilter.cpp" />
     <ClCompile Include="Error.cpp" />
