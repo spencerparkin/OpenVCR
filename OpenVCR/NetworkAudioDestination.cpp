@@ -27,8 +27,10 @@ NetworkAudioDestination::NetworkAudioDestination(const std::string& givenName) :
 
 /*virtual*/ bool NetworkAudioDestination::MoveData(Machine* machine, Error& error)
 {
-	// TODO: Can we use UDP here?  The first bit of data sent should probably be
-	//       a structure indicating the format of the subsequent audio stream.
+	// TODO: Can we use UDP here?
+
+	// TODO: Like the source, I think we'll be configured to interpret the audio stream as a certain format.
+	//       If the format is wrong, you just get undefined/muffled/crazy audio.
 	return false;
 }
 
