@@ -100,6 +100,9 @@
     <ClInclude Include="NetworkAudioDestination.h">
       <Filter>Sources\AudioDestinations</Filter>
     </ClInclude>
+    <ClInclude Include="NetworkAudioDevice.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Machine.cpp">
@@ -161,6 +164,9 @@
     </ClCompile>
     <ClCompile Include="NetworkAudioDestination.cpp">
       <Filter>Sources\AudioDestinations</Filter>
+    </ClCompile>
+    <ClCompile Include="NetworkAudioDevice.cpp">
+      <Filter>Sources</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

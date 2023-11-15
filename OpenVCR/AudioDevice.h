@@ -20,7 +20,10 @@ namespace OpenVCR
 		virtual bool SetPlaybackTime(double playbackTimeSeconds);
 
 	protected:
+		double AudioBufferOffsetToTimeSeconds(Uint32 audioBufferOffset, const SDL_AudioSpec* givenAudioSpec = nullptr) const;
+		Uint32 AudioBufferOffsetFromTimeSeconds(double timeSeconds, const SDL_AudioSpec* givenAudioSpec = nullptr) const;
 
+		// This is typically the format of the audio produced by the device.
 		SDL_AudioSpec audioSpec;
 
 		typedef std::function<bool(const std::string&)> DeviceSelectionCallback;

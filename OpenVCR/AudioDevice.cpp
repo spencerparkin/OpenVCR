@@ -32,6 +32,30 @@ AudioDevice::AudioDevice(const std::string& givenName) : IODevice(givenName)
 	return false;
 }
 
+double AudioDevice::AudioBufferOffsetToTimeSeconds(Uint32 audioBufferOffset, const SDL_AudioSpec* givenAudioSpec /*= nullptr*/) const
+{
+	if (!givenAudioSpec)
+		givenAudioSpec = &this->audioSpec;
+
+	Uint32 bytesPerSample = SDL_AUDIO_BITSIZE(givenAudioSpec->format) / 8;
+	Uint32 sampleFrameSize = givenAudioSpec->channels * bytesPerSample;
+	return double(audioBufferOffset) / (double(sampleFrameSize) * double(givenAudioSpec->freq));
+}
+
+// The returned offset here is guarenteed to be on a sample-frame boundary.
+Uint32 AudioDevice::AudioBufferOffsetFromTimeSeconds(double timeSeconds, const SDL_AudioSpec* givenAudioSpec /*= nullptr*/) const
+{
+	if (!givenAudioSpec)
+		givenAudioSpec = &this->audioSpec;
+
+	Uint32 bytesPerSample = SDL_AUDIO_BITSIZE(givenAudioSpec->format) / 8;
+	Uint32 sampleFrameSize = givenAudioSpec->channels * bytesPerSample;
+	Uint32 audioBufferOffset = Uint32(timeSeconds * double(sampleFrameSize) * double(givenAudioSpec->freq));
+	Uint32 remainder = audioBufferOffset % sampleFrameSize;
+	audioBufferOffset -= remainder;
+	return audioBufferOffset;
+}
+
 bool AudioDevice::SelectAudioDevice(std::string& chosenDevice, const std::string& deviceSubStr, DeviceType deviceType, Error& error)
 {
 	return this->SelectAudioDevice(chosenDevice, [=](const std::string& deviceName) -> bool {

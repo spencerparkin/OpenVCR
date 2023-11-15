@@ -1,10 +1,10 @@
 #pragma once
 
-#include "AudioDevice.h"
+#include "NetworkAudioDevice.h"
 
 namespace OpenVCR
 {
-	class OPEN_VCR_API NetworkAudioDestination : public AudioDevice
+	class OPEN_VCR_API NetworkAudioDestination : public NetworkAudioDevice
 	{
 	public:
 		NetworkAudioDestination(const std::string& givenName);
@@ -17,6 +17,13 @@ namespace OpenVCR
 		virtual bool MoveData(Machine* machine, Error& error) override;
 		virtual bool GetSampleData(std::vector<Uint8>& sampleBuffer) override;
 
+		void SetIPAddressAndPort(const std::string& ipAddr, uint16_t port);
+
 	private:
+
+		SDL_AudioStream* audioStream;
+		sockaddr_in destinationAddress;
+		std::string* ipAddr;
+		uint16_t port;
 	};
 }

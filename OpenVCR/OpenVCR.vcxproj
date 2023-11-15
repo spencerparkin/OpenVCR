@@ -120,7 +120,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;OPENVCR_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;OPENVCR_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);_WINSOCK_DEPRECATED_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -131,7 +131,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>opencv_world480d.lib;%(AdditionalDependencies);d3d11.lib;SDL2.lib</AdditionalDependencies>
+      <AdditionalDependencies>opencv_world480d.lib;%(AdditionalDependencies);d3d11.lib;SDL2.lib;Ws2_32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OpenCVRoot)\build\x64\vc16\lib;$(SDLRoot)\lib\x64</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -141,7 +141,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;OPENVCR_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;OPENVCR_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);_WINSOCK_DEPRECATED_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -154,7 +154,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>opencv_world480.lib;%(AdditionalDependencies);d3d11.lib;SDL2.lib</AdditionalDependencies>
+      <AdditionalDependencies>opencv_world480.lib;%(AdditionalDependencies);d3d11.lib;SDL2.lib;Ws2_32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OpenCVRoot)\build\x64\vc16\lib;$(SDLRoot)\lib\x64</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -175,6 +175,7 @@
     <ClInclude Include="IODevice.h" />
     <ClInclude Include="MicAudioSource.h" />
     <ClInclude Include="NetworkAudioDestination.h" />
+    <ClInclude Include="NetworkAudioDevice.h" />
     <ClInclude Include="NetworkAudioSource.h" />
     <ClInclude Include="RotationFilter.h" />
     <ClInclude Include="Machine.h" />
@@ -198,6 +199,7 @@
     <ClCompile Include="Machine.cpp" />
     <ClCompile Include="MicAudioSource.cpp" />
     <ClCompile Include="NetworkAudioDestination.cpp" />
+    <ClCompile Include="NetworkAudioDevice.cpp" />
     <ClCompile Include="NetworkAudioSource.cpp" />
     <ClCompile Include="RotationFilter.cpp" />
     <ClCompile Include="SpeakerAudioDestination.cpp" />

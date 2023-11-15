@@ -92,8 +92,10 @@ FileAudioDestination::FileAudioDestination(const std::string& givenName) : Audio
 			else
 			{
 				int result = SDL_AudioStreamGet(this->audioStream, audioBuffer, audioBufferSize);
-				if (result == 0)
+				if (result < 0)
 					error.Add(std::string("Failed to get samples from stream: {}", SDL_GetError()));
+				else if (result == 0)
+					error.Add("Got zero bytes from the stream.  Expected a non-zero number of bytes.");
 				else
 				{
 					AudioFile<int> audioFile;

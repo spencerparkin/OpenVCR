@@ -31,13 +31,19 @@ FileAudioSource::FileAudioSource(const std::string& givenName) : AudioDevice(giv
 
 /*virtual*/ bool FileAudioSource::PowerOn(Machine* machine, Error& error)
 {
-	// If the WAVE file is too big to be fully resident, then it's probably just not practical anyway.  I'm not going to worry about streaming from disk.
+	// If the WAVE file is too big to be fully resident, then it's probably just not practical anyway.
+	// I'm not going to worry about streaming from disk for now, but conceivably, we could do such a thing.
 	if (!SDL_LoadWAV(this->audioFilePath->c_str(), &this->audioSpec, &this->audioBuffer, &this->audioBufferSize))
 	{
 		error.Add(SDL_GetError());
 		return false;
 	}
 
+	// TODO: So...someone may want to pull audio from a file, but not for playback purposes.
+	//       It could be that they just want to mix the audio from, say, two different files.
+	//       So really, an audio sink here should just be optional.  The whole point of it is
+	//       just so that we can time the generation of samples we produce.  If no audio sink
+	//       is given, I suppose we could just send all the audio in one move.
 	AudioDevice* audioSinkDevice = machine->FindIODevice<AudioDevice>(*this->audioSinkName);
 	if (!audioSinkDevice)
 	{
@@ -66,6 +72,12 @@ FileAudioSource::FileAudioSource(const std::string& givenName) : AudioDevice(giv
 
 /*virtual*/ bool FileAudioSource::MoveData(Machine* machine, Error& error)
 {
+	if (this->GetNumSourceNames() != 0)
+	{
+		error.Add("File audio source expected zero connected source.");
+		return false;
+	}
+
 	AudioDevice* audioSinkDevice = machine->FindIODevice<AudioDevice>(*this->audioSinkName);
 	if (!audioSinkDevice)
 	{
@@ -115,24 +127,6 @@ FileAudioSource::FileAudioSource(const std::string& givenName) : AudioDevice(giv
 	}
 
 	return sampleBuffer.size() > 0;
-}
-
-double FileAudioSource::AudioBufferOffsetToTimeSeconds(Uint32 audioBufferOffset) const
-{
-	Uint32 bytesPerSample = SDL_AUDIO_BITSIZE(this->audioSpec.format) / 8;
-	Uint32 sampleFrameSize = this->audioSpec.channels * bytesPerSample;
-	return double(audioBufferOffset) / (double(sampleFrameSize) * double(this->audioSpec.freq));
-}
-
-// The returned offset here is guarenteed to be on a sample-frame boundary.
-Uint32 FileAudioSource::AudioBufferOffsetFromTimeSeconds(double timeSeconds) const
-{
-	Uint32 bytesPerSample = SDL_AUDIO_BITSIZE(this->audioSpec.format) / 8;
-	Uint32 sampleFrameSize = this->audioSpec.channels * bytesPerSample;
-	Uint32 audioBufferOffset = Uint32(timeSeconds * double(sampleFrameSize) * double(this->audioSpec.freq));
-	Uint32 remainder = audioBufferOffset % sampleFrameSize;
-	audioBufferOffset -= remainder;
-	return audioBufferOffset;
 }
 
 /*virtual*/ std::string FileAudioSource::GetStatusMessage() const

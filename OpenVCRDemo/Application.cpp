@@ -1,3 +1,4 @@
+#include <WinSock2.h>
 #include "Application.h"
 #include "Frame.h"
 #include "Machine.h"

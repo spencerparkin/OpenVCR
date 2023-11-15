@@ -1,3 +1,4 @@
+#include <WinSock2.h>
 #include "Frame.h"
 #include "Application.h"
 #include "Thread.h"
@@ -19,6 +20,7 @@
 #include <wx/sizer.h>
 #include <wx/textdlg.h>
 #include <wx/numdlg.h>
+#include <wx/aboutdlg.h>
 #include <wx/tokenzr.h>
 #include <inttypes.h>
 
@@ -448,4 +450,11 @@ void Frame::OnExit(wxCommandEvent& event)
 
 void Frame::OnAbout(wxCommandEvent& event)
 {
+	wxAboutDialogInfo aboutDialogInfo;
+
+	aboutDialogInfo.SetName("OpenVCR Demo");
+	aboutDialogInfo.SetVersion("1.0");
+	aboutDialogInfo.SetDescription("This program is meant to test the OpenVCR API.");
+
+	wxAboutBox(aboutDialogInfo);
 }

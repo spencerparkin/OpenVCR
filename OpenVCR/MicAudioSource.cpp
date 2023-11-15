@@ -34,6 +34,12 @@ MicAudioSource::MicAudioSource(const std::string& givenName) : AudioDevice(given
 		return false;
 	}
 
+	if (this->GetNumSourceNames() != 0)
+	{
+		error.Add("Mic audio source expected zero connected source.");
+		return false;
+	}
+
 	this->machineThreadBuffer->clear();
 	this->audioThreadBuffer->clear();
 

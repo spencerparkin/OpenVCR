@@ -26,8 +26,6 @@ namespace OpenVCR
 		const std::string& GetAudioSinkName() const;
 
 	private:
-		double AudioBufferOffsetToTimeSeconds(Uint32 audioBufferOffset) const;
-		Uint32 AudioBufferOffsetFromTimeSeconds(double timeSeconds) const;
 
 		double totalDurationSeconds;
 		double playbackDriftToleranceSeconds;
