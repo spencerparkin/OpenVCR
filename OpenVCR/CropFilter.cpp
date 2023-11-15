@@ -21,10 +21,16 @@ CropFilter::CropFilter(const std::string& givenName) : VideoDevice(givenName)
 
 /*virtual*/ bool CropFilter::MoveData(Machine* machine, Error& error)
 {
-	VideoDevice* videoDevice = machine->FindIODevice<VideoDevice>(*this->sourceName);
+	if (this->GetNumSourceNames() != 1)
+	{
+		error.Add("Crop filter expected exactly one source.");
+		return false;
+	}
+
+	VideoDevice* videoDevice = machine->FindIODevice<VideoDevice>(this->GetSourceName(0));
 	if (!videoDevice)
 	{
-		error.Add(std::format("Crop filter failed to find video device of name \"{}\".", this->sourceName->c_str()));
+		error.Add(std::format("Crop filter failed to find video device of name \"{}\".", this->GetSourceName(0).c_str()));
 		return false;
 	}
 

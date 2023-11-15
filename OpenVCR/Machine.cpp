@@ -82,18 +82,14 @@ bool Machine::PowerOn(Error& error)
 		for(auto pair : *this->ioDeviceMap)
 		{
 			IODevice* ioDevice = pair.second;
-			if (!ioDevice->IsPoweredOn())
+			if (!ioDevice->IsPoweredOn() && ioDevice->AllSourcesPoweredOn(*this))
 			{
-				IODevice* sourceDevice = this->FindIODevice<IODevice>(ioDevice->GetSourceName());
-				if (!sourceDevice || sourceDevice->IsPoweredOn())
+				if (ioDevice->PowerOn(this, error))
+					thisPassPowerOnCount++;
+				else
 				{
-					if (ioDevice->PowerOn(this, error))
-						thisPassPowerOnCount++;
-					else
-					{
-						error.Add("IO device power-on failed.");
-						return false;
-					}
+					error.Add("IO device power-on failed.");
+					return false;
 				}
 			}
 		}

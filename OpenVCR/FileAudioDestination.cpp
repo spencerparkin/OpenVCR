@@ -45,7 +45,13 @@ FileAudioDestination::FileAudioDestination(const std::string& givenName) : Audio
 		return false;
 	}
 
-	AudioDevice* audioDevice = machine->FindIODevice<AudioDevice>(*this->sourceName);
+	if (this->GetNumSourceNames() != 1)
+	{
+		error.Add("File audio destination expected exactly one source.");
+		return false;
+	}
+
+	AudioDevice* audioDevice = machine->FindIODevice<AudioDevice>(this->GetSourceName(0));
 	if (!audioDevice)
 	{
 		error.Add("File audio destination has no source device.");
@@ -128,7 +134,7 @@ FileAudioDestination::FileAudioDestination(const std::string& givenName) : Audio
 
 /*virtual*/ bool FileAudioDestination::MoveData(Machine* machine, Error& error)
 {
-	AudioDevice* audioDevice = machine->FindIODevice<AudioDevice>(*this->sourceName);
+	AudioDevice* audioDevice = machine->FindIODevice<AudioDevice>(this->GetSourceName(0));
 	if (!audioDevice)
 	{
 		error.Add("File audio destination has no source device.");

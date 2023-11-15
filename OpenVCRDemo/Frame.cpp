@@ -162,7 +162,7 @@ void Frame::OnSetupMachine(wxCommandEvent& event)
 				return;
 			}
 
-			rotationFilter->SetSourceName(cameraVideoSource->GetName());
+			rotationFilter->AddSourceName(cameraVideoSource->GetName());
 			rotationFilter->SetRotationAngle(45.0);
 
 			auto fileVideoDestination = wxGetApp().machine.AddIODevice<OpenVCR::FileVideoDestination>("video_destination", error);
@@ -173,7 +173,7 @@ void Frame::OnSetupMachine(wxCommandEvent& event)
 			}
 
 			fileVideoDestination->SetVideoFilePath((const char*)saveFileDialog.GetPath());
-			fileVideoDestination->SetSourceName(rotationFilter->GetName());
+			fileVideoDestination->AddSourceName(rotationFilter->GetName());
 			fileVideoDestination->SetFrameRate(30.0);
 			fileVideoDestination->SetFrameSize(640, 480);
 
@@ -185,7 +185,7 @@ void Frame::OnSetupMachine(wxCommandEvent& event)
 			}
 
 			windowVideoDestination->SetWindowHandle(this->renderControl->GetHWND());
-			windowVideoDestination->SetSourceName(rotationFilter->GetName());
+			windowVideoDestination->AddSourceName(rotationFilter->GetName());
 
 			wxMessageBox("Now setup to capture and dump video file!", "Success", wxOK | wxICON_INFORMATION, this);
 			break;
@@ -215,7 +215,7 @@ void Frame::OnSetupMachine(wxCommandEvent& event)
 			}
 
 			windowVideoDestination->SetWindowHandle(this->renderControl->GetHWND());
-			windowVideoDestination->SetSourceName(fileVideoSource->GetName());
+			windowVideoDestination->AddSourceName(fileVideoSource->GetName());
 
 			wxMessageBox("Now setup to replay video file!", "Success", wxOK | wxICON_INFORMATION, this);
 			break;
@@ -253,7 +253,7 @@ void Frame::OnSetupMachine(wxCommandEvent& event)
 				return;
 			}
 
-			fileAudioDestination->SetSourceName(micAudioSource->GetName());
+			fileAudioDestination->AddSourceName(micAudioSource->GetName());
 			fileAudioDestination->SetAudioFilePath((const char*)saveFileDialog.GetPath().c_str());
 
 			wxMessageBox("Now setup to capture audio and dump to file!", "Success", wxOK | wxICON_INFORMATION, this);
@@ -284,7 +284,7 @@ void Frame::OnSetupMachine(wxCommandEvent& event)
 			}
 
 			volumeFilter->SetVolume(1.0);
-			volumeFilter->SetSourceName(fileAudioSource->GetName());
+			volumeFilter->AddSourceName(fileAudioSource->GetName());
 
 			auto speakerAudioDestination = wxGetApp().machine.AddIODevice<OpenVCR::SpeakerAudioDestination>("audio_destination", error);
 			if (!speakerAudioDestination)
@@ -293,7 +293,7 @@ void Frame::OnSetupMachine(wxCommandEvent& event)
 				return;
 			}
 
-			speakerAudioDestination->SetSourceName(volumeFilter->GetName());
+			speakerAudioDestination->AddSourceName(volumeFilter->GetName());
 
 			if (!this->manuallySelectDevices)
 				speakerAudioDestination->SetDeviceSubString("Logi");

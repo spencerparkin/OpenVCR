@@ -24,17 +24,22 @@ namespace OpenVCR
 		void SetName(const std::string& givenName) { *this->name = givenName; }
 		const std::string& GetName() const { return *this->name; }
 
-		void SetSourceName(const std::string& givenName) { *this->sourceName = givenName; }
-		const std::string& GetSourceName() const { return *this->sourceName; }
+		void AddSourceName(const std::string& givenName);
+		std::string GetSourceName(int i) const;
+		int GetNumSourceNames() const;
+		void ClearSourceNames();
 
 		bool IsPoweredOn() const { return this->poweredOn; }
+		bool IsPoweredOff() const { return !this->poweredOn; }
 		bool IsComplete() const { return this->complete; }
+		
+		bool AllSourcesPoweredOn(Machine& machine) const;
 
 	protected:
 
 		bool poweredOn;
 		bool complete;
 		std::string* name;
-		std::string* sourceName;
+		std::vector<std::string>* sourceNameArray;
 	};
 }

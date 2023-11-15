@@ -34,7 +34,13 @@ SpeakerAudioDestination::SpeakerAudioDestination(const std::string& givenName) :
 		return false;
 	}
 
-	AudioDevice* audioDevice = machine->FindIODevice<AudioDevice>(*this->sourceName);
+	if (this->GetNumSourceNames() != 1)
+	{
+		error.Add("Speaker audio destination expected exactly one source.");
+		return false;
+	}
+
+	AudioDevice* audioDevice = machine->FindIODevice<AudioDevice>(this->GetSourceName(0));
 	if (!audioDevice)
 	{
 		error.Add("Can't power-on speaker audio destination without source audio device.");
@@ -122,7 +128,7 @@ void SpeakerAudioDestination::SetDeviceSelectionCallback(DeviceSelectionCallback
 
 /*virtual*/ bool SpeakerAudioDestination::MoveData(Machine* machine, Error& error)
 {
-	AudioDevice* audioDevice = machine->FindIODevice<AudioDevice>(*this->sourceName);
+	AudioDevice* audioDevice = machine->FindIODevice<AudioDevice>(this->GetSourceName(0));
 	if (!audioDevice)
 	{
 		error.Add("Can't move data to speaker audio destination without source audio device.");

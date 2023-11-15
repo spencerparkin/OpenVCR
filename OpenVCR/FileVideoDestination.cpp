@@ -32,10 +32,16 @@ FileVideoDestination::FileVideoDestination(const std::string& givenName) : Video
 		return false;
 	}
 
-	VideoDevice* videoDevice = machine->FindIODevice<VideoDevice>(*this->sourceName);
+	if (this->GetNumSourceNames() != 1)
+	{
+		error.Add("File video destination expected exactly one source.");
+		return false;
+	}
+
+	VideoDevice* videoDevice = machine->FindIODevice<VideoDevice>(this->GetSourceName(0));
 	if (!videoDevice)
 	{
-		error.Add(std::format("File video destination can't find frame source with name \"{}\".", this->sourceName->c_str()));
+		error.Add(std::format("File video destination can't find frame source with name \"{}\".", this->GetSourceName(0).c_str()));
 		return false;
 	}
 
@@ -108,16 +114,16 @@ void FileVideoDestination::SetFrameRate(double frameRateFPS)
 
 /*virtual*/ bool FileVideoDestination::MoveData(Machine* machine, Error& error)
 {
-	if (!this->videoWriter)
+	if (this->GetNumSourceNames() != 1)
 	{
-		error.Add("No video writer to which we may add a frame.");
+		error.Add("File video destination expected exactly one source.");
 		return false;
 	}
 
-	VideoDevice* videoDevice = machine->FindIODevice<VideoDevice>(*this->sourceName);
+	VideoDevice* videoDevice = machine->FindIODevice<VideoDevice>(this->GetSourceName(0));
 	if (!videoDevice)
 	{
-		error.Add(std::format("File video destination failed to find source IO device with name \"{}\".", this->sourceName->c_str()));
+		error.Add(std::format("File video destination failed to find source IO device with name \"{}\".", this->GetSourceName(0).c_str()));
 		return false;
 	}
 

@@ -22,7 +22,13 @@ VolumeFilter::VolumeFilter(const std::string& givenName) : AudioDevice(givenName
 
 /*virtual*/ bool VolumeFilter::PowerOn(Machine* machine, Error& error)
 {
-	AudioDevice* audioDevice = machine->FindIODevice<AudioDevice>(*this->sourceName);
+	if (this->GetNumSourceNames() != 1)
+	{
+		error.Add("Volume filter expected exactly one source.");
+		return false;
+	}
+
+	AudioDevice* audioDevice = machine->FindIODevice<AudioDevice>(this->GetSourceName(0));
 	if (!audioDevice)
 	{
 		error.Add("Volume filter needs source device.");
@@ -43,7 +49,7 @@ VolumeFilter::VolumeFilter(const std::string& givenName) : AudioDevice(givenName
 
 /*virtual*/ bool VolumeFilter::MoveData(Machine* machine, Error& error)
 {
-	AudioDevice* audioDevice = machine->FindIODevice<AudioDevice>(*this->sourceName);
+	AudioDevice* audioDevice = machine->FindIODevice<AudioDevice>(this->GetSourceName(0));
 	if (!audioDevice)
 	{
 		error.Add("Volume filter needs source device.");

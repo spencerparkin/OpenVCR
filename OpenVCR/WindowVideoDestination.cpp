@@ -52,6 +52,12 @@ WindowVideoDestination::RenderMode WindowVideoDestination::GetRenderMode()
 
 /*virtual*/ bool WindowVideoDestination::PowerOn(Machine* machine, Error& error)
 {
+    if (this->GetNumSourceNames() != 1)
+    {
+        error.Add("Window video destination expected exactly one source.");
+        return false;
+    }
+
     RECT clientRect;
     if (!::GetClientRect(this->windowHandle, &clientRect))
     {
@@ -260,10 +266,10 @@ bool WindowVideoDestination::CreateFrameTexture(Error& error)
 
 /*virtual*/ bool WindowVideoDestination::MoveData(Machine* machine, Error& error)
 {
-    VideoDevice* videoDevice = machine->FindIODevice<VideoDevice>(*this->sourceName);
+    VideoDevice* videoDevice = machine->FindIODevice<VideoDevice>(this->GetSourceName(0));
     if (!videoDevice)
     {
-        error.Add(std::format("Window video destination failed to find video device with name \"{}\".", this->sourceName->c_str()));
+        error.Add(std::format("Window video destination failed to find video device with name \"{}\".", this->GetSourceName(0).c_str()));
         return false;
     }
 

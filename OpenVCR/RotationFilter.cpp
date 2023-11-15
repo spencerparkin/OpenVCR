@@ -20,10 +20,16 @@ RotationFilter::RotationFilter(const std::string& givenName) : VideoDevice(given
 
 /*virtual*/ bool RotationFilter::MoveData(Machine* machine, Error& error)
 {
-	VideoDevice* videoDevice = machine->FindIODevice<VideoDevice>(*this->sourceName);
+	if (this->GetNumSourceNames() != 1)
+	{
+		error.Add("Rotation filter expected exactly one source.");
+		return false;
+	}
+
+	VideoDevice* videoDevice = machine->FindIODevice<VideoDevice>(this->GetSourceName(0));
 	if (!videoDevice)
 	{
-		error.Add(std::format("Rotation filter failed to find video device of name \"{}\".", this->sourceName->c_str()));
+		error.Add(std::format("Rotation filter failed to find video device of name \"{}\".", this->GetSourceName(0).c_str()));
 		return false;
 	}
 
