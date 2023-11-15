@@ -16,6 +16,11 @@ AdditiveAudioMixer::AdditiveAudioMixer(const std::string& givenName) : AudioDevi
 	delete this->byteStreamArray;
 }
 
+/*static*/ AdditiveAudioMixer* AdditiveAudioMixer::Create(const std::string& name)
+{
+	return new AdditiveAudioMixer(name);
+}
+
 /*virtual*/ bool AdditiveAudioMixer::PowerOn(Machine* machine, Error& error)
 {
 	if (this->byteStreamArray->size() > 0)

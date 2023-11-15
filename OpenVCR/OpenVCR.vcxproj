@@ -174,6 +174,8 @@
     <ClInclude Include="FileVideoSource.h" />
     <ClInclude Include="IODevice.h" />
     <ClInclude Include="MicAudioSource.h" />
+    <ClInclude Include="NetworkAudioDestination.h" />
+    <ClInclude Include="NetworkAudioSource.h" />
     <ClInclude Include="RotationFilter.h" />
     <ClInclude Include="Machine.h" />
     <ClInclude Include="SpeakerAudioDestination.h" />
@@ -195,6 +197,8 @@
     <ClCompile Include="IODevice.cpp" />
     <ClCompile Include="Machine.cpp" />
     <ClCompile Include="MicAudioSource.cpp" />
+    <ClCompile Include="NetworkAudioDestination.cpp" />
+    <ClCompile Include="NetworkAudioSource.cpp" />
     <ClCompile Include="RotationFilter.cpp" />
     <ClCompile Include="SpeakerAudioDestination.cpp" />
     <ClCompile Include="VideoDevice.cpp" />

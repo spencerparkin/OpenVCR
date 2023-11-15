@@ -94,6 +94,12 @@
     <ClInclude Include="ByteStream.h">
       <Filter>Sources</Filter>
     </ClInclude>
+    <ClInclude Include="NetworkAudioSource.h">
+      <Filter>Sources\AudioSources</Filter>
+    </ClInclude>
+    <ClInclude Include="NetworkAudioDestination.h">
+      <Filter>Sources\AudioDestinations</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Machine.cpp">
@@ -149,6 +155,12 @@
     </ClCompile>
     <ClCompile Include="ByteStream.cpp">
       <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="NetworkAudioSource.cpp">
+      <Filter>Sources\AudioSources</Filter>
+    </ClCompile>
+    <ClCompile Include="NetworkAudioDestination.cpp">
+      <Filter>Sources\AudioDestinations</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

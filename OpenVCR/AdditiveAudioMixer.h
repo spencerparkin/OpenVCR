@@ -11,6 +11,8 @@ namespace OpenVCR
 		AdditiveAudioMixer(const std::string& givenName);
 		virtual ~AdditiveAudioMixer();
 
+		static AdditiveAudioMixer* Create(const std::string& name);
+
 		virtual bool PowerOn(Machine* machine, Error& error) override;
 		virtual bool PowerOff(Machine* machine, Error& error) override;
 		virtual bool MoveData(Machine* machine, Error& error) override;
