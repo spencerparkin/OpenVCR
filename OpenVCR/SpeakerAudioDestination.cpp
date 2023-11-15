@@ -11,12 +11,14 @@ SpeakerAudioDestination::SpeakerAudioDestination(const std::string& givenName) :
 	this->audioStream = nullptr;
 	this->initialPlaybackTimeSeconds = 0.0;
 	this->totalBytesSunk = 0;
+	this->selectionCallback = new DeviceSelectionCallback;
 }
 
 /*virtual*/ SpeakerAudioDestination::~SpeakerAudioDestination()
 {
 	delete this->deviceSubStr;
 	delete this->machineThreadBuffer;
+	delete this->selectionCallback;
 }
 
 /*static*/ SpeakerAudioDestination* SpeakerAudioDestination::Create(const std::string& name)
@@ -45,23 +47,22 @@ SpeakerAudioDestination::SpeakerAudioDestination(const std::string& givenName) :
 	desiredSpec.callback = &SpeakerAudioDestination::AudioCallbackEntry;
 	desiredSpec.userdata = this;
 
-	int numAudioDevices = SDL_GetNumAudioDevices(0);
-	if (numAudioDevices == 0)
+	std::string chosenDevice;
+
+	if (*this->selectionCallback)
 	{
-		error.Add("No output audio devices found.");
-		return false;
+		if (!this->SelectAudioDevice(chosenDevice, *this->selectionCallback, DeviceType::OUTPUT, error))
+			return false;
+	}
+	else if (this->deviceSubStr->length() > 0)
+	{
+		if (!this->SelectAudioDevice(chosenDevice, *this->deviceSubStr, DeviceType::OUTPUT, error))
+			return false;
 	}
 
 	const char* audioDeviceName = nullptr;
-	if (this->deviceSubStr->length() > 0)
-	{
-		for (int i = 0; i < numAudioDevices; i++)
-		{
-			audioDeviceName = SDL_GetAudioDeviceName(i, 0);
-			if (strstr(audioDeviceName, this->deviceSubStr->c_str()) != nullptr)
-				break;
-		}
-	}
+	if (chosenDevice.length() > 0)
+		audioDeviceName = chosenDevice.c_str();
 
 	this->deviceID = SDL_OpenAudioDevice(audioDeviceName, 0, &desiredSpec, &this->audioSpec, SDL_AUDIO_ALLOW_ANY_CHANGE);
 	if (this->deviceID == 0)
@@ -112,6 +113,11 @@ SpeakerAudioDestination::SpeakerAudioDestination(const std::string& givenName) :
 void SpeakerAudioDestination::SetDeviceSubString(const std::string& deviceSubStr)
 {
 	*this->deviceSubStr = deviceSubStr;
+}
+
+void SpeakerAudioDestination::SetDeviceSelectionCallback(DeviceSelectionCallback selectionCallback)
+{
+	*this->selectionCallback = selectionCallback;
 }
 
 /*virtual*/ bool SpeakerAudioDestination::MoveData(Machine* machine, Error& error)

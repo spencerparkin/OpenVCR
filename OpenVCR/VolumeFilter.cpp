@@ -93,10 +93,10 @@ VolumeFilter::VolumeFilter(const std::string& givenName) : AudioDevice(givenName
 
 void VolumeFilter::SetVolume(double volume)
 {
-	if (volume < 0.0)
+	/*if (volume < 0.0)
 		volume = 0.0;
 	else if (volume > 1.0)
-		volume = 1.0;
+		volume = 1.0;*/
 
 	this->volumeFactor = volume;
 }

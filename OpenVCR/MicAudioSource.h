@@ -19,6 +19,7 @@ namespace OpenVCR
 		virtual bool GetSampleData(std::vector<Uint8>& sampleBuffer) override;
 
 		void SetDeviceSubString(const std::string& deviceSubStr);
+		void SetDeviceSelectionCallback(DeviceSelectionCallback selectionCallback);
 
 	private:
 
@@ -30,5 +31,6 @@ namespace OpenVCR
 		SDL_AudioDeviceID deviceID;
 		std::vector<Uint8>* audioThreadBuffer;
 		std::vector<Uint8>* machineThreadBuffer;
+		DeviceSelectionCallback* selectionCallback;
 	};
 }

@@ -10,6 +10,7 @@ MicAudioSource::MicAudioSource(const std::string& givenName) : AudioDevice(given
 	this->deviceSubStr = new std::string();
 	this->audioThreadBuffer = new std::vector<Uint8>();
 	this->machineThreadBuffer = new std::vector<Uint8>();
+	this->selectionCallback = new DeviceSelectionCallback();
 }
 
 /*virtual*/ MicAudioSource::~MicAudioSource()
@@ -17,6 +18,7 @@ MicAudioSource::MicAudioSource(const std::string& givenName) : AudioDevice(given
 	delete this->deviceSubStr;
 	delete this->audioThreadBuffer;
 	delete this->machineThreadBuffer;
+	delete this->selectionCallback;
 }
 
 /*static*/ MicAudioSource* MicAudioSource::Create(const std::string& name)
@@ -35,23 +37,22 @@ MicAudioSource::MicAudioSource(const std::string& givenName) : AudioDevice(given
 	this->machineThreadBuffer->clear();
 	this->audioThreadBuffer->clear();
 
-	int numAudioDevices = SDL_GetNumAudioDevices(1);
-	if (numAudioDevices == 0)
+	std::string chosenDevice;
+	
+	if (*this->selectionCallback)
 	{
-		error.Add("No input audio devices found.");
-		return false;
+		if (!this->SelectAudioDevice(chosenDevice, *this->selectionCallback, DeviceType::INPUT, error))
+			return false;
+	}
+	else if (this->deviceSubStr->length() > 0)
+	{
+		if (!this->SelectAudioDevice(chosenDevice, *this->deviceSubStr, DeviceType::INPUT, error))
+			return false;
 	}
 
 	const char* audioDeviceName = nullptr;
-	if (this->deviceSubStr->length() > 0)
-	{
-		for (int i = 0; i < numAudioDevices; i++)
-		{
-			audioDeviceName = SDL_GetAudioDeviceName(i, 1);
-			if (strstr(audioDeviceName, this->deviceSubStr->c_str()) != nullptr)
-				break;
-		}
-	}
+	if (chosenDevice.length() > 0)
+		audioDeviceName = chosenDevice.c_str();
 
 	SDL_AudioSpec desiredSpec;
 	desiredSpec.size = 0;
@@ -115,6 +116,11 @@ MicAudioSource::MicAudioSource(const std::string& givenName) : AudioDevice(given
 void MicAudioSource::SetDeviceSubString(const std::string& deviceSubStr)
 {
 	*this->deviceSubStr = deviceSubStr;
+}
+
+void MicAudioSource::SetDeviceSelectionCallback(DeviceSelectionCallback selectionCallback)
+{
+	*this->selectionCallback = selectionCallback;
 }
 
 void MicAudioSource::AudioCallback(Uint8* buffer, int length)

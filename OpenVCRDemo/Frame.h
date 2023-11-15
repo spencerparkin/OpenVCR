@@ -22,6 +22,7 @@ public:
 		ID_PowerOnMachine,
 		ID_PowerOffMachine,
 		ID_ScrubMode,
+		ID_ManuallySelectDevices,
 		ID_About,
 		ID_Exit
 	};
@@ -38,7 +39,7 @@ public:
 	void OnThreadStatus(ThreadStatusEvent& event);
 	void OnSliderChanged(wxScrollEvent& event);
 	void OnResize(wxSizeEvent& event);
-	void OnScrubMode(wxCommandEvent& event);
+	void OnToggleOption(wxCommandEvent& event);
 
 	void StartThread();
 	void StopThread();
@@ -49,4 +50,5 @@ public:
 	wxSlider* slider;
 	wxControl* renderControl;
 	bool scrubMode;
+	bool manuallySelectDevices;
 };

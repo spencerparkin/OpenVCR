@@ -20,6 +20,7 @@ namespace OpenVCR
 		virtual std::string GetStatusMessage() const override;
 
 		void SetDeviceSubString(const std::string& deviceSubStr);
+		void SetDeviceSelectionCallback(DeviceSelectionCallback selectionCallback);
 
 	private:
 
@@ -33,5 +34,6 @@ namespace OpenVCR
 		SDL_AudioStream* audioStream;
 		double initialPlaybackTimeSeconds;
 		Uint32 totalBytesSunk;
+		DeviceSelectionCallback* selectionCallback;
 	};
 }

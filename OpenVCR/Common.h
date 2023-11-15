@@ -8,5 +8,6 @@
 #include <vector>
 #include <string>
 #include <format>
+#include <functional>
 
 #define OPEN_VCR_API __declspec(dllexport)

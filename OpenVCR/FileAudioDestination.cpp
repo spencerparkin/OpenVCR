@@ -119,6 +119,7 @@ FileAudioDestination::FileAudioDestination(const std::string& givenName) : Audio
 		}
 
 		SDL_FreeAudioStream(this->audioStream);
+		this->audioStream = nullptr;
 	}
 
 	this->poweredOn = false;

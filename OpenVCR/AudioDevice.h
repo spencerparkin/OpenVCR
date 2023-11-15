@@ -6,6 +6,8 @@
 
 namespace OpenVCR
 {
+	class Error;
+
 	class OPEN_VCR_API AudioDevice : public IODevice
 	{
 	public:
@@ -18,6 +20,18 @@ namespace OpenVCR
 		virtual bool SetPlaybackTime(double playbackTimeSeconds);
 
 	protected:
+
 		SDL_AudioSpec audioSpec;
+
+		typedef std::function<bool(const std::string&)> DeviceSelectionCallback;
+
+		enum class DeviceType
+		{
+			INPUT,
+			OUTPUT
+		};
+
+		bool SelectAudioDevice(std::string& chosenDevice, const std::string& deviceSubStr, DeviceType deviceType, Error& error);
+		bool SelectAudioDevice(std::string& chosenDevice, DeviceSelectionCallback selectionCallback, DeviceType deviceType, Error& error);
 	};
 }

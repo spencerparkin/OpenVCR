@@ -26,6 +26,7 @@ Frame::Frame() : wxFrame(nullptr, wxID_ANY, "OpenVCR Demo", wxDefaultPosition, w
 {
 	this->thread = nullptr;
 	this->scrubMode = false;
+	this->manuallySelectDevices = false;
 
 	wxMenu* fileMenu = new wxMenu();
 	fileMenu->Append(new wxMenuItem(fileMenu, ID_PowerOnMachine, "Power On Machine"));
@@ -41,6 +42,7 @@ Frame::Frame() : wxFrame(nullptr, wxID_ANY, "OpenVCR Demo", wxDefaultPosition, w
 
 	wxMenu* optionsMenu = new wxMenu();
 	optionsMenu->Append(new wxMenuItem(optionsMenu, ID_ScrubMode, "Scrub Mode", wxEmptyString, wxITEM_CHECK));
+	optionsMenu->Append(new wxMenuItem(optionsMenu, ID_ManuallySelectDevices, "Manually Select Devices", wxEmptyString, wxITEM_CHECK));
 
 	wxMenu* helpMenu = new wxMenu();
 	helpMenu->Append(new wxMenuItem(helpMenu, ID_About, "About"));
@@ -59,7 +61,8 @@ Frame::Frame() : wxFrame(nullptr, wxID_ANY, "OpenVCR Demo", wxDefaultPosition, w
 	this->Bind(wxEVT_MENU, &Frame::OnSetupMachine, this, ID_SetupToReplayAudio);
 	this->Bind(wxEVT_MENU, &Frame::OnPowerMachine, this, ID_PowerOnMachine);
 	this->Bind(wxEVT_MENU, &Frame::OnPowerMachine, this, ID_PowerOffMachine);
-	this->Bind(wxEVT_MENU, &Frame::OnScrubMode, this, ID_ScrubMode);
+	this->Bind(wxEVT_MENU, &Frame::OnToggleOption, this, ID_ScrubMode);
+	this->Bind(wxEVT_MENU, &Frame::OnToggleOption, this, ID_ManuallySelectDevices);
 	this->Bind(wxEVT_MENU, &Frame::OnAbout, this, ID_About);
 	this->Bind(wxEVT_MENU, &Frame::OnExit, this, ID_Exit);
 	this->Bind(wxEVT_UPDATE_UI, &Frame::OnUpdateUI, this, ID_PowerOnMachine);
@@ -102,9 +105,22 @@ void Frame::OnClose(wxCloseEvent& event)
 	wxFrame::OnCloseWindow(event);
 }
 
-void Frame::OnScrubMode(wxCommandEvent& event)
+void Frame::OnToggleOption(wxCommandEvent& event)
 {
-	this->scrubMode = !this->scrubMode;
+	switch (event.GetId())
+	{
+		case ID_ScrubMode:
+		{
+			this->scrubMode = !this->scrubMode;
+			break;
+		}
+		case ID_ManuallySelectDevices:
+		{
+			this->manuallySelectDevices = !this->manuallySelectDevices;
+			break;
+		}
+	}
+	
 }
 
 void Frame::OnSetupMachine(wxCommandEvent& event)
@@ -219,7 +235,16 @@ void Frame::OnSetupMachine(wxCommandEvent& event)
 				return;
 			}
 
-			micAudioSource->SetDeviceSubString("Logi");
+			if (!this->manuallySelectDevices)
+				micAudioSource->SetDeviceSubString("Logi");
+			else
+			{
+				micAudioSource->SetDeviceSelectionCallback([=](const std::string& audioDeviceName) -> bool {
+					if (wxYES == wxMessageBox(wxString::Format("Input Device: %s", audioDeviceName.c_str()), "Info", wxYES_NO, this))
+						return true;
+					return false;
+				});
+			}
 
 			auto fileAudioDestination = wxGetApp().machine.AddIODevice<OpenVCR::FileAudioDestination>("audio_destination", error);
 			if (!fileAudioDestination)
@@ -258,7 +283,7 @@ void Frame::OnSetupMachine(wxCommandEvent& event)
 				return;
 			}
 
-			volumeFilter->SetVolume(0.9);
+			volumeFilter->SetVolume(1.0);
 			volumeFilter->SetSourceName(fileAudioSource->GetName());
 
 			auto speakerAudioDestination = wxGetApp().machine.AddIODevice<OpenVCR::SpeakerAudioDestination>("audio_destination", error);
@@ -269,7 +294,17 @@ void Frame::OnSetupMachine(wxCommandEvent& event)
 			}
 
 			speakerAudioDestination->SetSourceName(volumeFilter->GetName());
-			speakerAudioDestination->SetDeviceSubString("Logi");
+
+			if (!this->manuallySelectDevices)
+				speakerAudioDestination->SetDeviceSubString("Logi");
+			else
+			{
+				speakerAudioDestination->SetDeviceSelectionCallback([=](const std::string& audioDeviceName) -> bool {
+					if (wxYES == wxMessageBox(wxString::Format("Output Device: %s", audioDeviceName.c_str()), "Info", wxYES_NO, this))
+						return true;
+					return false;
+				});
+			}
 
 			fileAudioSource->SetAudioSinkName(speakerAudioDestination->GetName());
 
@@ -300,6 +335,11 @@ void Frame::OnUpdateUI(wxUpdateUIEvent& event)
 		case ID_ScrubMode:
 		{
 			event.Check(this->scrubMode);
+			break;
+		}
+		case ID_ManuallySelectDevices:
+		{
+			event.Check(this->manuallySelectDevices);
 			break;
 		}
 	}

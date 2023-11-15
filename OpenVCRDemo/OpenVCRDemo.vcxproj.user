@@ -9,11 +9,11 @@
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LocalDebuggerEnvironment>PATH=E:\OpenCV\build\x64\vc16\bin;C:\ENG_DEV\driver\trunk\Main_8\apis\SDL2-2.28.5\lib\x64</LocalDebuggerEnvironment>
+    <LocalDebuggerEnvironment>PATH=C:\ENG_DEV\driver\trunk\Main_8\apis\OpenCV\build\x64\vc16\bin;C:\ENG_DEV\driver\trunk\Main_8\apis\SDL2-2.28.5\lib\x64</LocalDebuggerEnvironment>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LocalDebuggerEnvironment>PATH=E:\OpenCV\build\x64\vc16\bin;C:\ENG_DEV\driver\trunk\Main_8\apis\SDL2-2.28.5\lib\x64</LocalDebuggerEnvironment>
+    <LocalDebuggerEnvironment>PATH=C:\ENG_DEV\driver\trunk\Main_8\apis\OpenCV\build\x64\vc16\bin;C:\ENG_DEV\driver\trunk\Main_8\apis\SDL2-2.28.5\lib\x64</LocalDebuggerEnvironment>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
 </Project>
