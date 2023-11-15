@@ -74,6 +74,7 @@ AdditiveAudioMixer::AdditiveAudioMixer(const std::string& givenName) : AudioDevi
 
 /*virtual*/ bool AdditiveAudioMixer::MoveData(Machine* machine, Error& error)
 {
+	// First, make sure all our inputs are ready.
 	for (int i = 0; i < this->GetNumSourceNames(); i++)
 	{
 		AudioDevice* audioDevice = machine->FindIODevice<AudioDevice>(this->GetSourceName(i));
@@ -82,6 +83,15 @@ AdditiveAudioMixer::AdditiveAudioMixer(const std::string& givenName) : AudioDevi
 			error.Add(std::format("Failed to get audio source {}.", i));
 			return false;
 		}
+
+		if (!audioDevice->IsComplete())
+			return true;
+	}
+
+	// Pull sample data from all the inputs.
+	for (int i = 0; i < this->GetNumSourceNames(); i++)
+	{
+		AudioDevice* audioDevice = machine->FindIODevice<AudioDevice>(this->GetSourceName(i));
 
 		std::vector<Uint8> sampleData;
 		if (audioDevice->GetSampleData(sampleData))
@@ -100,9 +110,9 @@ AdditiveAudioMixer::AdditiveAudioMixer(const std::string& givenName) : AudioDevi
 			maxSize = numBytesAvailable;
 	}
 
+	// Now go mix the streams to prepare our output.
 	this->mixedAudioSample->clear();
 	this->mixedAudioSample->resize(maxSize);
-
 	for (RawByteStream* byteStream : *this->byteStreamArray)
 	{
 		std::vector<Uint8> audioSample;
