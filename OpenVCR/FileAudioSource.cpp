@@ -7,14 +7,14 @@ using namespace OpenVCR;
 FileAudioSource::FileAudioSource(const std::string& givenName) : AudioDevice(givenName)
 {
 	this->totalDurationSeconds = 0.0;
-	this->playbackDriftToleranceSeconds = 3.0;
+	this->playbackDriftToleranceSeconds = 0.5;
 	this->futureBufferSeconds = 5.0;
 	this->audioFilePath = new std::string();
 	this->audioBuffer = nullptr;
 	this->audioBufferSize = 0;
 	this->audioSinkName = new std::string();
 	this->futurePosition = 0;
-	this->sampleChunkSizeBytes = 16;
+	this->sampleChunkSizeBytes = 5 * 1024;
 	this->nextSampleOffset = 0;
 }
 
@@ -153,4 +153,14 @@ void FileAudioSource::SetAudioSinkName(const std::string& audioSinkName)
 const std::string& FileAudioSource::GetAudioSinkName() const
 {
 	return *this->audioSinkName;
+}
+
+void FileAudioSource::SetDriftTolerance(double driftToleranceSeconds)
+{
+	this->playbackDriftToleranceSeconds = driftToleranceSeconds;
+}
+
+double FileAudioSource::GetDriftTolerance() const
+{
+	return this->playbackDriftToleranceSeconds;
 }

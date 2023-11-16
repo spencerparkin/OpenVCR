@@ -25,6 +25,9 @@ namespace OpenVCR
 		void SetAudioSinkName(const std::string& audioSinkName);
 		const std::string& GetAudioSinkName() const;
 
+		void SetDriftTolerance(double driftToleranceSeconds);
+		double GetDriftTolerance() const;
+
 	private:
 
 		double totalDurationSeconds;
