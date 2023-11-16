@@ -59,7 +59,7 @@ Uint32 AudioDevice::AudioBufferOffsetFromTimeSeconds(double timeSeconds, const S
 bool AudioDevice::SelectAudioDevice(std::string& chosenDevice, const std::string& deviceSubStr, DeviceType deviceType, Error& error)
 {
 	return this->SelectAudioDevice(chosenDevice, [=](const std::string& deviceName) -> bool {
-		return deviceName.find(deviceSubStr) >= 0;
+		return deviceName.find(deviceSubStr) != std::string::npos;
 	}, deviceType, error);
 }
 
