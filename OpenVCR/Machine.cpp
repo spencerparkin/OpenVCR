@@ -68,7 +68,7 @@ bool Machine::PowerOn(Error& error)
 	}
 
 #if defined _DEBUG
-	cv::utils::logging::setLogLevel(cv::utils::logging::LOG_LEVEL_VERBOSE);
+	cv::utils::logging::setLogLevel(cv::utils::logging::LOG_LEVEL_DEBUG);
 #else
 	cv::utils::logging::setLogLevel(cv::utils::logging::LOG_LEVEL_SILENT);
 #endif
